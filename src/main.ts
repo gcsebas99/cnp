@@ -24,7 +24,7 @@ game.start('start', { // name of the start scene 'start'
   inTransition: new FadeInOut({ // Optional in transition
     duration: 1000,
     direction: 'in',
-    color: Color.ExcaliburBlue
+    color: Color.Orange
   })
 }).then(() => {
   // Do something after the game starts
