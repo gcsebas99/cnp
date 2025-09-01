@@ -1,7 +1,8 @@
 {
   "name": "cnp",
-  "version": "0.0.0",
-  "description": "",
+  "version": "1.0.0",
+  "description": "Platformer game for my sons",
+  "homepage": "https://gcsebas99.github.io/cnp/",
   "main": "src/main.ts",
   "scripts": {
     "dev": "vite",
@@ -9,7 +10,8 @@
     "build": "tsc && vite build",
     "serve": "vite preview",
     "test": "npm run build && npx playwright test",
-    "test:integration-update": "npx playwright test --update-snapshots"
+    "test:integration-update": "npx playwright test --update-snapshots",
+    "deploy": "gh-pages -d dist"
   },
   "repository": {},
   "keywords": [
@@ -21,13 +23,13 @@
   "author": "",
   "license": "",
   "bugs": {},
-  "homepage": "",
   "dependencies": {
     "excalibur": "0.30.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
     "@types/node": "^22.10.2",
+    "gh-pages": "^6.3.0",
     "typescript": "5.9.2",
     "vite": "6.3.5"
   }

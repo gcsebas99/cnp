@@ -6,19 +6,19 @@ import { defineConfig } from "vite";
 // this forces vite to not interpret tsx as react
 const tiledPlugin = () => {
     return {
-        name: 'tiled-tileset-plugin',
+        name: "tiled-tileset-plugin",
         resolveId: {
-            order: 'pre',
+            order: "pre",
             handler(sourceId, importer, options) {
                 if (!sourceId.endsWith(".tsx")) return;
-                return { id: 'tileset:' + sourceId, external: 'relative' }
+                return { id: "tileset:" + sourceId, external: "relative" };
             }
         }
     };
 }
 
 export default defineConfig({
-    base: './', // optionally give a base path, useful for itch.io to serve relative instead of the default absolut
+    base: "/cnp/", // optionally give a base path, useful for itch.io to serve relative instead of the default absolut
     plugins: [tiledPlugin()], // hint vite that tiled tilesets should be treated as external
     // currently excalibur plugins are commonjs
     // this forces vite to keep things from bundling ESM together with commonjs
@@ -32,7 +32,7 @@ export default defineConfig({
         // to keep vite from bundling ESM together with commonjs
         rollupOptions: {
             output: {
-                format: 'umd'
+                format: "umd"
             }
         }
     }
