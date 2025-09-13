@@ -1,5 +1,5 @@
 // player.ts
-import { Actor, Animation, CollisionType, Engine, SpriteSheet, vec } from "excalibur";
+import { Actor, CollisionType, Engine, vec } from "excalibur"; // Animation, SpriteSheet,
 //import { Resources } from "./resources"; // assumes you have chuti.png, neiti.png
 import { TennisController } from "../../controllers/tennis-controller";
 

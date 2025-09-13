@@ -1,4 +1,4 @@
-import { ImageSource, Loader } from "excalibur";
+import { ImageSource } from "excalibur";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
 import tennisGrassUrl from "../assets/tennis/tennis-grass.png";
 import skyCloudsUrl from "../assets/tennis/clouds.jpg";

@@ -1,4 +1,4 @@
-import { Engine, Color, Keys, ExcaliburGraphicsContext, vec, Text, Font, TextAlign, BaseAlign } from "excalibur";
+import { Engine, Color, Keys, ExcaliburGraphicsContext, Text, Font, TextAlign, BaseAlign } from "excalibur";
 import { InputManager } from "./input-manager";
 import { AdventureSlot, PersistentGameStateManager } from "./persistent-game-state-manager";
 import { createNineSliceSprites } from "../utils/create-nine-slice-sprite";
@@ -148,7 +148,7 @@ export class MenuManager {
     }
 
     else if (this.state === "slotDetails") {
-      const slot = this.memorySlots[this.hIndex];
+      //const slot = this.memorySlots[this.hIndex];
       // For now, all options load LevelOne
       this.engine.goToScene("levelOne");
     }
