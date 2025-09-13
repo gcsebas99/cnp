@@ -1,5 +1,16 @@
 @media (prefers-color-scheme: dark) {
   body {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    height: 100vh;
     background-color: black;
   }
+}
+
+@font-face {
+  font-family: "ThaleahFat";
+  src: url("./assets/fonts/ThaleahFat.ttf") format("truetype"); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
 }

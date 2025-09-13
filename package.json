@@ -23,6 +23,7 @@
   "license": "",
   "bugs": {},
   "dependencies": {
+    "@excaliburjs/plugin-ldtk": "^0.30.3",
     "excalibur": "0.30.3"
   },
   "devDependencies": {
