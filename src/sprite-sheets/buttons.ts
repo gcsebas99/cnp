@@ -1,5 +1,5 @@
 import { SpriteSheet } from "excalibur";
-import { Resources } from "../resources";
+import { Resources } from "@/resources";
 
 export const ButtonSheet = SpriteSheet.fromImageSource({
   image: Resources.Buttons,

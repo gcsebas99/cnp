@@ -1,7 +1,7 @@
 // player.ts
 import { Actor, CollisionType, Engine, vec } from "excalibur"; // Animation, SpriteSheet,
 //import { Resources } from "./resources"; // assumes you have chuti.png, neiti.png
-import { TennisController } from "../../controllers/tennis-controller";
+import { TennisController } from "@/controllers/tennis-controller";
 
 export type Character = "chuti" | "neiti";
 

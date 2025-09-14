@@ -1,6 +1,6 @@
 import { Actor, Color, Engine, FadeInOut, Font, Label, Scene, Sprite, TextAlign, Vector } from "excalibur";
-import { Resources } from "../resources";
-import { InputManager } from "../managers/input-manager";
+import { Resources } from "@/resources";
+import { InputManager } from "@/managers/input-manager";
 
 export class SplashScene extends Scene {
   private background?: Sprite;

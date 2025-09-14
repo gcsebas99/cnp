@@ -1,4 +1,6 @@
 import { defineConfig } from "vite";
+import { viteStaticCopy } from "vite-plugin-static-copy";
+import path from "path";
 
 // if you use tiled maps
 // there is a collision between react w/ typescript .tsx
@@ -19,7 +21,22 @@ const tiledPlugin = () => {
 
 export default defineConfig({
     base: "/cnp/", // optionally give a base path, useful for itch.io to serve relative instead of the default absolut
-    plugins: [tiledPlugin()], // hint vite that tiled tilesets should be treated as external
+    resolve: {
+        alias: {
+        "@": path.resolve(__dirname, "./src"),
+        },
+    },
+    plugins: [
+        tiledPlugin(),
+        viteStaticCopy({
+            targets: [
+                {
+                    src: "src/assets/ldtk/*.ldtk",
+                    dest: "ldtk"
+                }
+            ]
+        })
+    ],
     // currently excalibur plugins are commonjs
     // this forces vite to keep things from bundling ESM together with commonjs
     optimizeDeps: {

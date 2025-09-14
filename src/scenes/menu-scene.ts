@@ -1,7 +1,7 @@
 import { Color, Engine, ExcaliburGraphicsContext, FadeInOut, Scene } from "excalibur";
-import { Resources } from "../resources";
-import { MenuManager } from "../managers/menu-manager";
-import { InputManager } from "../managers/input-manager";
+import { Resources } from "@/resources";
+import { MenuManager } from "@/managers/menu-manager";
+import { InputManager } from "@/managers/input-manager";
 
 export class MenuScene extends Scene {
   private menuManager!: MenuManager;

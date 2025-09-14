@@ -1,6 +1,6 @@
 // tennis-controller.ts
 import { Engine, Keys } from "excalibur";
-import { Player } from "../actors/player/player";
+import { Player } from "@/actors/player/player";
 
 export class TennisController {
   speed = 150; // adjust as needed

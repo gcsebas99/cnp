@@ -1,5 +1,5 @@
 import { Color, Engine, FadeInOut, Scene } from "excalibur";
-import { Resources } from "../../resources";
+import { Resources } from "@/resources";
 
 export class FruitPickerScene extends Scene {
 

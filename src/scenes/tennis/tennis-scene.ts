@@ -1,8 +1,8 @@
 import { Engine, FadeInOut, Color, Actor, vec, GraphicsGroup, GraphicsGrouping } from "excalibur";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
-import { BaseLdtkScene } from "../../core/base-ldtk-scene";
-import { Resources } from "../../resources";
-import { Resources as TennisResources } from "../../resources/tennis-resources";
+import { BaseLdtkScene } from "@/core/base-ldtk-scene";
+import { Resources } from "@/resources";
+import { Resources as TennisResources } from "@/resources/tennis-resources";
 
 export class TennisScene extends BaseLdtkScene {
   private clouds?: Actor;

@@ -324,7 +324,7 @@
 			"__bgColor": "#696A79",
 			"bgColor": null,
 			"useAutoIdentifier": false,
-			"bgRelPath": "assets/tennis-grass.png",
+			"bgRelPath": "../tennis/tennis-grass.png",
 			"bgPos": "Cover",
 			"bgPivotX": 0.5,
 			"bgPivotY": 0.5,

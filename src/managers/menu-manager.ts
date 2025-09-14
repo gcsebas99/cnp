@@ -1,10 +1,10 @@
 import { Engine, Color, Keys, ExcaliburGraphicsContext, Text, Font, TextAlign, BaseAlign } from "excalibur";
 import { InputManager } from "./input-manager";
 import { AdventureSlot, PersistentGameStateManager } from "./persistent-game-state-manager";
-import { createNineSliceSprites } from "../utils/create-nine-slice-sprite";
-import { Buttons } from "../sprite-sheets/buttons";
-import { drawNineSliceButton } from "../utils/draw-nine-slice-button";
-import { CursorSheet } from "../sprite-sheets/cursor";
+import { createNineSliceSprites } from "@/utils/create-nine-slice-sprite";
+import { Buttons } from "@/sprite-sheets/buttons";
+import { drawNineSliceButton } from "@/utils/draw-nine-slice-button";
+import { CursorSheet } from "@/sprite-sheets/cursor";
 
 type MenuState = "main" | "adventure" | "minigames" | "slotDetails";
 
