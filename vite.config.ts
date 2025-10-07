@@ -33,6 +33,10 @@ export default defineConfig({
                 {
                     src: "src/assets/ldtk/*.ldtk",
                     dest: "ldtk"
+                },
+                {
+                    src: "src/assets/ldtk/assets/**/*",
+                    dest: "ldtk/assets"
                 }
             ]
         })
