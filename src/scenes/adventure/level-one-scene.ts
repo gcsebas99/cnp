@@ -14,7 +14,7 @@ export class LevelOneScene extends Scene {
   }
 
   onActivate() {
-    Resources.MenuMusic.play();
+   //Resources.MenuMusic.play();
   }
 
   onDeactivate() {

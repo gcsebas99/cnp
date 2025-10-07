@@ -23,7 +23,7 @@ export class MenuScene extends Scene {
   onActivate() {
     // Reset state when entering the menu scene
     this.menuManager.setState("main");
-    Resources.MenuMusic.play();
+    //Resources.MenuMusic.play();
   }
 
   onDeactivate() {
@@ -36,6 +36,7 @@ export class MenuScene extends Scene {
   }
 
   onPreUpdate(engine: Engine, delta: number) {
+    InputManager.instance.update();
     this.menuManager.update(delta);
   }
 
@@ -47,28 +48,3 @@ export class MenuScene extends Scene {
     });
   }
 }
-
-// export class MenuScene extends Scene {
-
-//   public onInitialize(engine: Engine) {
-//     this.backgroundColor = Color.Purple;
-//   }
-
-//   public onActivate() {
-//     const input = InputManager.instance;
-
-//     input.onKey("press", (evt) => {
-//       if (evt.key === Keys.Enter) {
-//         console.log("Start game!");
-//       }
-//     });
-
-//     input.onGamepadButton((evt) => {
-//       console.log("Gamepad button:", evt.button);
-//     });
-//   }
-
-//   public onDeactivate(ctx: ex.SceneActivationContext<undefined>): void {
-//     InputManager.instance.clearAllListeners();
-//   }
-// }

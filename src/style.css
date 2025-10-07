@@ -14,3 +14,8 @@
   font-family: "ThaleahFat";
   src: url("./assets/fonts/ThaleahFat.ttf") format("truetype"); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
 }
+
+@font-face {
+  font-family: "PolygonParty";
+  src: url("./assets/fonts/PolygonParty-3KXM.ttf") format("truetype"); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}

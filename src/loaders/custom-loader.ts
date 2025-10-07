@@ -12,7 +12,7 @@ export class CustomLoader extends DefaultLoader {
     //console.log("||--Progress", this.progress);
   }
   override async onUserAction(): Promise<void> {
-    console.log("||--onUserAction", this.progress);
+    //console.log("||--onUserAction", this.progress);
     // Return a promise that resolves when the user interacts with the loading screen in some way,
     // usually a click.
     //

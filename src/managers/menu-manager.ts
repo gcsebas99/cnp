@@ -1,4 +1,4 @@
-import { Engine, Color, Keys, ExcaliburGraphicsContext, Text, Font, TextAlign, BaseAlign } from "excalibur";
+import { Engine, Color, ExcaliburGraphicsContext, Text, Font, TextAlign, BaseAlign } from "excalibur";
 import { InputManager } from "./input-manager";
 import { AdventureSlot, PersistentGameStateManager } from "./persistent-game-state-manager";
 import { createNineSliceSprites } from "@/utils/create-nine-slice-sprite";
@@ -27,8 +27,8 @@ export class MenuManager {
 
   private minigames: MenuItem[] = [
     { label: "Tennis", color: Color.Violet },
-    { label: "Fruit Picker", color: Color.Orange },
-    { label: "Coming Soon", color: Color.Gray }
+    { label: "Basket Dash", color: Color.Orange },
+    { label: "Role Rush", color: Color.Gray }
   ];
 
   private memorySlots: AdventureSlot[] = [
@@ -44,45 +44,10 @@ export class MenuManager {
   constructor(engine: Engine) {
     this.engine = engine;
     this.input = InputManager.instance; //input manager already initialized in main.ts
-    this.setupInput();
   }
 
   setState(newState: MenuState) {
     this.state = newState;
-  }
-
-  private setupInput() {
-    this.input.onKey("press", (evt) => {
-      switch (evt.key) {
-        case Keys.Left:
-          this.handleLeft();
-          break;
-        case Keys.Right:
-          this.handleRight();
-          break;
-        case Keys.Up:
-          this.handleUp();
-          break;
-        case Keys.Down:
-          this.handleDown();
-          break;
-        case Keys.Enter:
-        case Keys.Space:
-          this.handleSelect();
-          break;
-        case Keys.Escape:
-          this.handleBack();
-          break;
-      }
-    });
-    this.input.onGamepadButton((evt) => {
-      if (evt.button === 14) this.handleLeft(); // D-pad left
-      if (evt.button === 15) this.handleRight();  // D-pad right
-      if (evt.button === 12) this.handleUp();  // D-pad up
-      if (evt.button === 13) this.handleDown();   // D-pad down
-      if (evt.button === 0) this.handleSelect();  // Cross
-      if (evt.button === 1) this.handleBack();  // Circle
-    });
   }
 
   private handleLeft() {
@@ -157,9 +122,9 @@ export class MenuManager {
       if (this.hIndex === 0) {
         this.engine.goToScene("tennis");
       } else if (this.hIndex === 1) {
-        this.engine.goToScene("fruitPicker");
+        this.engine.goToScene("basketDash");
       } else {
-        console.log("Coming soon!");
+        this.engine.goToScene("roleRush");
       }
     }
   }
@@ -184,7 +149,18 @@ export class MenuManager {
 
   public update(dt: number) {
     this.elapsed += dt;
-  }
+
+    const input = this.input.state;
+    // Navigation
+    if (input.justPressed.has("left")) this.handleLeft();
+    if (input.justPressed.has("right")) this.handleRight();
+    if (input.justPressed.has("up")) this.handleUp();
+    if (input.justPressed.has("down")) this.handleDown();
+
+    // Confirm / Back
+    if (input.justPressed.has("button1")) this.handleSelect();
+    if (input.justPressed.has("button2") || input.justPressed.has("pause")) this.handleBack();
+    }
 
   public draw(ctx: ExcaliburGraphicsContext) {
     const menu = this.getActiveMenu();
@@ -275,7 +251,7 @@ export class MenuManager {
 
     if (this.state === "minigames") {
       const baseY = y + buttonHeight + 60;
-      const highest = PersistentGameStateManager.getHighScore(this.hIndex === 0 ? "tennisHighScore" : (this.hIndex === 1 ? "fruitPickerHighScore" : "otherGame"));
+      const highest = PersistentGameStateManager.getHighScore(this.hIndex === 0 ? "tennisHighScore" : (this.hIndex === 1 ? "basketDashHighScore" : "roleRushHighScore"));
       const msg = new Text({
         text: "Highest score: " + highest,
         color: Color.White,

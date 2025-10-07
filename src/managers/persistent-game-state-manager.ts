@@ -10,8 +10,8 @@ export type AdventureSlot = {
 
 export type MinigameScores = {
   tennisHighScore: number;
-  fruitPickerHighScore: number;
-  otherGame: number;
+  basketDashHighScore: number;
+  roleRushHighScore: number;
 };
 
 export class PersistentGameStateManager {
@@ -39,8 +39,8 @@ export class PersistentGameStateManager {
         })),
         minigames: {
           tennisHighScore: 0,
-          fruitPickerHighScore: 0,
-          otherGame: 0
+          basketDashHighScore: 0,
+          roleRushHighScore: 0
         }
       };
       this.saveState();

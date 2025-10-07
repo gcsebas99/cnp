@@ -6,8 +6,6 @@ export class SplashScene extends Scene {
   private background?: Sprite;
   private pressText!: Label;
   private elapsed = 0;
-  //private keyHandler?: (evt: KeyEvent | GamepadButtonEvent) => void;
-  //private gamepad?: Gamepad;
 
   constructor() {
     super();
