@@ -1,5 +1,5 @@
 import { TennisCollisionGroups } from "@/config/collision-groups";
-import { Actor, CollisionStartEvent, CollisionType, Color, Engine, Scene, vec, Vector } from "excalibur";
+import { Actor, CollisionStartEvent, CollisionType, Color, Engine, Scene, vec } from "excalibur";
 import { Racket } from "@/actors/tools/racket";
 import { Resources as TennisResources } from "@/resources/tennis-resources";
 

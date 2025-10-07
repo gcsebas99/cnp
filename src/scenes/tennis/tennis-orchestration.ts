@@ -47,9 +47,9 @@ export class TennisOrchestration extends GameOrchestration {
 
   // Helpers
   private fadeIn(ms: number) { /* wrapper around a fade actor */ }
-  private fadeOut(ms: number) { /* wrapper around a fade actor */ }
+  //private fadeOut(ms: number) { /* wrapper around a fade actor */ }
   private delay(ms: number) { return new Promise(res => setTimeout(res, ms)); }
   private async playerWalkIn() { /* animate player pos */ }
   private setupUI() { /* show timer + score */ }
-  private startTimer(ms: number) { /* handle game countdown */ }
+  //private startTimer(ms: number) { /* handle game countdown */ }
 }

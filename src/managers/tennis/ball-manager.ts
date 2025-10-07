@@ -14,7 +14,7 @@ export class BallManager {
   };
   private bounce: { player?: Area, opponent?: Area } = {};
 
-  private servingSide: "opponent" | "player" = "opponent";
+  //private servingSide: "opponent" | "player" = "opponent";
   private lastHitBy: "opponent" | "player" = "opponent";
 
   constructor(scene: Scene, player: Player) {

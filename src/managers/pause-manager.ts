@@ -1,5 +1,5 @@
 import { Engine, ScreenElement, Color, Vector, Label, Font, GraphicsComponent } from "excalibur";
-import { InputManager } from "@/managers/input-manager";
+//import { InputManager } from "@/managers/input-manager";
 
 export class PauseManager {
   private static _instance: PauseManager;
@@ -8,12 +8,12 @@ export class PauseManager {
   private menuBox!: ScreenElement;
   private isActive = false;
   private elementsCreated:boolean = false;
-  private input: InputManager;
+  //private input: InputManager;
 
   private constructor(engine: Engine) {
     this.engine = engine;
     this.elementsCreated = false;
-    this.input = InputManager.instance;
+    //this.input = InputManager.instance;
   }
 
   public static init(engine: Engine) {

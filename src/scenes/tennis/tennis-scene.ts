@@ -10,12 +10,12 @@ import { TennisCollisionGroups } from "@/config/collision-groups";
 import { InputManager } from "@/managers/input-manager";
 import { TennisController } from "@/controllers/tennis-controller";
 import { Racket } from "@/actors/tools/racket";
-import { TennisOrchestration } from "@/scenes/tennis/tennis-orchestration";
+//import { TennisOrchestration } from "@/scenes/tennis/tennis-orchestration";
 import { GuiManager } from "@/managers/gui-manager";
 import { PauseManager } from "@/managers/pause-manager";
 
 export class TennisScene extends BaseLdtkScene {
-  private orchestration!: TennisOrchestration; // TennisOrchestration;
+  //private orchestration!: TennisOrchestration;
   private clouds?: Actor;
 
   private ballSpawns: Area[] = [];
@@ -124,7 +124,7 @@ export class TennisScene extends BaseLdtkScene {
 
   override onInitialize(engine: Engine) {
     super.onInitialize(engine);
-    this.orchestration = new TennisOrchestration(engine, this);
+    //this.orchestration = new TennisOrchestration(engine, this);
 
     // Grass court background
     const tennisGrassCourt = new Actor({

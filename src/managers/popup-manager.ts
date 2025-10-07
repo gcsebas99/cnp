@@ -1,4 +1,4 @@
-import { Color, Engine, Graphic, ScreenElement, Sound, vec, Vector, Text, Sprite, AnimationStrategy, Animation, SpriteSheet } from "excalibur";
+import { Color, Engine, Graphic, ScreenElement, Sound, vec, Vector, Text, AnimationStrategy, Animation, SpriteSheet } from "excalibur";
 
 type PopupOptions = {
   duration?: number;         // ms to stay visible

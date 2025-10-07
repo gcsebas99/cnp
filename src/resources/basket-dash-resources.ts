@@ -1,4 +1,4 @@
-import { ImageSource } from "excalibur";
+//import { ImageSource } from "excalibur";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
 import { CustomLoader } from "@/loaders/custom-loader";
 import { getLdtkMapPath } from "@/utils/get-ldtk-map-path";
