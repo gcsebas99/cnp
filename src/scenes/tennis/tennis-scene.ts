@@ -1,4 +1,4 @@
-import { Engine, FadeInOut, Color, Actor, vec, GraphicsGroup, GraphicsGrouping, CollisionType } from "excalibur";
+import { Engine, Actor, vec, CollisionType } from "excalibur";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
 import { BaseLdtkScene } from "@/core/base-ldtk-scene";
 import { Resources } from "@/resources";
@@ -7,16 +7,15 @@ import { Player } from "@/actors/player/player";
 import { Area } from "@/types/area";
 import { BallManager } from "@/managers/tennis/ball-manager";
 import { TennisCollisionGroups } from "@/config/collision-groups";
-import { InputManager } from "@/managers/input-manager";
 import { TennisController } from "@/controllers/tennis-controller";
 import { Racket } from "@/actors/tools/racket";
 //import { TennisOrchestration } from "@/scenes/tennis/tennis-orchestration";
 import { GuiManager } from "@/managers/gui-manager";
-import { PauseManager } from "@/managers/pause-manager";
+import { MovingBackground } from "@/actors/objects/moving-background";
 
 export class TennisScene extends BaseLdtkScene {
   //private orchestration!: TennisOrchestration;
-  private clouds?: Actor;
+  private clouds?: MovingBackground;
 
   private ballSpawns: Area[] = [];
   private opponentSpawns: Area[] = [];
@@ -29,7 +28,7 @@ export class TennisScene extends BaseLdtkScene {
   public ballManager?: BallManager;
 
   constructor() {
-    super();
+    super("tennis");
   }
 
   protected override registerFactories(engine: Engine, ldtk: LdtkResource) {
@@ -136,33 +135,18 @@ export class TennisScene extends BaseLdtkScene {
     this.add(tennisGrassCourt);
 
     // Sky background
-    const skyChoice = Math.random() > 0.5 ? TennisResources.BgSkyClouds : TennisResources.BgSkyNightClouds;
-    const skySprite = skyChoice.toSprite();
-    // We'll make an actor that tiles its sprite across the width of the game
-    this.clouds = new Actor({
-      pos: vec(0, 0),
-      anchor: vec(0, 0),
+    // const skyChoice = Math.random() > 0.5 ? TennisResources.BgSkyClouds : TennisResources.BgSkyNightClouds;
+    this.clouds = new MovingBackground({
       width: engine.drawWidth,
-      height: engine.drawHeight / 2, // top half of screen
+      height: engine.drawHeight,
+      sprite: TennisResources.BgSkyNightClouds.toSprite(),
+      spriteSize: 400,
+      direction: "left",
+      speed: 0.012,
     });
-    this.clouds.z = -3; // even farther back
-    // Tile horizontally across width
-    const tileWidth = skySprite.width;
-    const neededTiles = Math.ceil(engine.drawWidth / tileWidth) + 1;
-    const tile = skyChoice.toSprite();
-    const layout = [];
-    for (let i = 0; i < neededTiles; i++) {
-      layout.push({
-        graphic: tile,
-        offset: vec(i * tileWidth, 0)
-      });
-    }
-    const cloudsGroup = new GraphicsGroup({
-      useAnchor: false,
-      members: layout
-    });
-    this.clouds.graphics.use(cloudsGroup);
     this.add(this.clouds);
+
+
 
 
     // move to game orchestration
@@ -175,45 +159,27 @@ export class TennisScene extends BaseLdtkScene {
   }
 
   onActivate() {
+    super.onActivate();
+    //InputManager.instance.updateConnectedGamepads();
     //Resources.MenuMusic.play();
+    // setTimeout(() => {
+    //   InputManager.instance.disableExceptPause();
+    // }, 5000);
+    // setTimeout(() => {
+    //   InputManager.instance.enable();
+    // }, 10000);
   }
 
   onDeactivate() {
     Resources.MenuMusic.stop();
-    InputManager.instance.clearAllListeners();
   }
 
   override onPreUpdate(engine: Engine, delta: number) {
-    InputManager.instance.update();
-    GuiManager.instance.tick(delta);
     super.onPreUpdate(engine, delta);
-
-    // Animate clouds slowly to the left
-    if (this.clouds) {
-      this.clouds.pos.x -= delta * 0.012; // move clouds left
-      const tileWidth = ((this.clouds.graphics.current as GraphicsGroup).members[0] as GraphicsGrouping).graphic.width;
-      // wrap when scrolled past one tile
-      if (this.clouds.pos.x <= -tileWidth) {
-        this.clouds.pos.x = 0;
-      }
-    }
-
-    const inputState = InputManager.instance.state;
-    // handle pause
-    if (inputState.justPressed.has("pause")) {
-      PauseManager.instance.toggle();
-    }
+    GuiManager.instance.tick(delta);
   }
 
   // override onPostUpdate(engine: ex.Engine, delta: number) {
   //   InputManager.instance.update();
   // }
-
-  onTransition(direction: "in" | "out") {
-    return new FadeInOut({
-      direction,
-      color: Color.Black,
-      duration: 500
-    });
-  }
 }

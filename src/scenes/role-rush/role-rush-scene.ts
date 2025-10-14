@@ -1,11 +1,25 @@
-import { Engine, FadeInOut, Color } from "excalibur";
+import { Engine, vec } from "excalibur";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
 import { BaseLdtkScene } from "@/core/base-ldtk-scene";
 import { Resources } from "@/resources";
-import { InputManager } from "@/managers/input-manager";
+import { JTPlatform } from "@/actors/objects/jt-platform";
+import { RoleRushTerrainGrid } from "@/sprite-sheets/role-rush-terrain";
+import { MovingBackground } from "@/actors/objects/moving-background";
+import { Resources as RoleRushResources } from "@/resources/role-rush-resources";
+import { Player } from "@/actors/player/player";
+import { RoleRushController } from "@/controllers/role-rush-controller";
+import { GuiManager } from "@/managers/gui-manager";
+import { SolidWall } from "@/actors/objects/solid-wall";
+import { RoleRushDoor } from "@/actors/objects/role-rush-door";
+import { PlatformWithFan } from "@/actors/objects/platform-with-fan";
 
 export class RoleRushScene extends BaseLdtkScene {
-  // private clouds?: Actor;
+  private background?: MovingBackground;
+  private door?: RoleRushDoor;
+  private elevator?: PlatformWithFan;
+
+  //player
+  private player?: Player;
 
   // private ballSpawns: Area[] = [];
   // private opponentSpawns: Area[] = [];
@@ -17,10 +31,26 @@ export class RoleRushScene extends BaseLdtkScene {
   // public ballManager?: BallManager;
 
   constructor() {
-    super();
+    super("roleRush");
   }
 
   protected override registerFactories(engine: Engine, ldtk: LdtkResource) {
+
+    ldtk.registerEntityIdentifierFactory("JumpThroughPlatform", (props) => {
+      const jtPlatform = new JTPlatform(props.worldPos.x, props.worldPos.y, props.entity.width, props.entity.height, RoleRushTerrainGrid.groundPink, 64, `JTP-${props.entity.width}x${props.entity.height}`, -2);
+      return jtPlatform;
+    });
+
+    ldtk.registerEntityIdentifierFactory("LevelBorder", (props) => {
+      const levelWall = new SolidWall(props.worldPos.x, props.worldPos.y, props.entity.width, props.entity.height, `Wall-${props.entity.width}x${props.entity.height}`);
+      return levelWall;
+    });
+
+    ldtk.registerEntityIdentifierFactory("PlayerSpawn", (props) => {
+      this.player = new Player("chuti", props.worldPos.x, props.worldPos.y, vec(props.entity.__pivot[0],props.entity.__pivot[1]));
+      this.player.controller = new RoleRushController();
+      return this.player;
+    });
 
     // ldtk.registerEntityIdentifierFactory("PlayerSpawn", (props) => {
     //   //console.log("PlayerSpawn at", props.worldPos.x, props.worldPos.y);
@@ -110,79 +140,71 @@ export class RoleRushScene extends BaseLdtkScene {
   override onInitialize(engine: Engine) {
     super.onInitialize(engine);
 
+    this.background = new MovingBackground({
+      width: engine.drawWidth,
+      height: engine.drawHeight,
+      sprite: RoleRushResources.BgBlue.toSprite(),
+      spriteSize: 64,
+      direction: "down",
+      speed: 0.05,
+    });
+    this.add(this.background);
+
+    //add a door
+    this.door = new RoleRushDoor(1088, 696);
+    this.add(this.door);
+
+    //add an elevator
+    this.elevator = new PlatformWithFan(1856, 1150, 1856, 320);
+    this.add(this.elevator);
 
 
-    // // Grass court background
-    // const tennisGrassCourt = new Actor({
-    //   pos: vec(engine.halfDrawWidth, engine.halfDrawHeight),
-    //   anchor: vec(0.5, 0.5)
-    // });
-    // tennisGrassCourt.graphics.use(TennisResources.BgTennisGrassCourt.toSprite());
-    // tennisGrassCourt.z = -2; // behind everything
-    // this.add(tennisGrassCourt);
+    //this is just for bg testing
+    setTimeout(() => {
+      if(this.background) {
+        this.background.actions.fade(0, 500).callMethod(() => {
+          if(this.background) {
+            this.background.kill();
+            this.background = undefined;
+          }
+        });
+        //add a new background with different settings
+        const background2 = new MovingBackground({
+          width: engine.drawWidth,
+          height: engine.drawHeight,
+          sprite: RoleRushResources.BgBrown.toSprite(),
+          spriteSize: 64,
+          direction: "up",
+          speed: 0.1,
+          z: -4
+        });
+        this.add(background2);
+      }
+    }, 3000);
 
-    // // Sky background
-    // const skyChoice = Math.random() > 0.5 ? TennisResources.BgSkyClouds : TennisResources.BgSkyNightClouds;
-    // const skySprite = skyChoice.toSprite();
-    // // We'll make an actor that tiles its sprite across the width of the game
-    // this.clouds = new Actor({
-    //   pos: vec(0, 0),
-    //   anchor: vec(0, 0),
-    //   width: engine.drawWidth,
-    //   height: engine.drawHeight / 2, // top half of screen
-    // });
-    // this.clouds.z = -3; // even farther back
-    // // Tile horizontally across width
-    // const tileWidth = skySprite.width;
-    // const neededTiles = Math.ceil(engine.drawWidth / tileWidth) + 1;
-    // const tile = skyChoice.toSprite();
-    // const layout = [];
-    // for (let i = 0; i < neededTiles; i++) {
-    //   layout.push({
-    //     graphic: tile,
-    //     offset: vec(i * tileWidth, 0)
-    //   });
-    // }
-    // const cloudsGroup = new GraphicsGroup({
-    //   useAnchor: false,
-    //   members: layout
-    // });
-    // this.clouds.graphics.use(cloudsGroup);
-    // this.add(this.clouds);
 
+    // move to game orchestration
+    GuiManager.instance.show();
+    GuiManager.instance.setTimer(3 * 60 * 1000);
 
     Resources.MenuMusic.loop = true;
-    Resources.MenuMusic.volume = 0.2;
+    Resources.MenuMusic.volume = 0.15;
   }
 
   onActivate() {
-    //Resources.MenuMusic.play();
+    super.onActivate();
+    //InputManager.instance.updateConnectedGamepads();
+    Resources.MenuMusic.play();
   }
 
   onDeactivate() {
     Resources.MenuMusic.stop();
-    InputManager.instance.clearAllListeners();
   }
 
   override onPreUpdate(engine: Engine, delta: number) {
-    // super.onPreUpdate(engine, delta);
+    //InputManager.instance.update();
+    super.onPreUpdate(engine, delta);
+    GuiManager.instance.tick(delta);
 
-    // // Animate clouds slowly to the left
-    // if (this.clouds) {
-    //   this.clouds.pos.x -= delta * 0.025; // move clouds left
-    //   const tileWidth = ((this.clouds.graphics.current as GraphicsGroup).members[0] as GraphicsGrouping).graphic.width;
-    //   // wrap when scrolled past one tile
-    //   if (this.clouds.pos.x <= -tileWidth) {
-    //     this.clouds.pos.x = 0;
-    //   }
-    // }
-  }
-
-  onTransition(direction: "in" | "out") {
-    return new FadeInOut({
-      direction,
-      color: Color.Black,
-      duration: 500
-    });
   }
 }

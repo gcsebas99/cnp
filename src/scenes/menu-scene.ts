@@ -21,6 +21,7 @@ export class MenuScene extends Scene {
   }
 
   onActivate() {
+    InputManager.instance.updateConnectedGamepads();
     // Reset state when entering the menu scene
     this.menuManager.setState("main");
     //Resources.MenuMusic.play();
@@ -28,7 +29,6 @@ export class MenuScene extends Scene {
 
   onDeactivate() {
     Resources.MenuMusic.stop();
-    InputManager.instance.clearAllListeners();
   }
 
   onPostDraw(ctx: ExcaliburGraphicsContext, elapsed: number) {

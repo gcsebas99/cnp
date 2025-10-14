@@ -57,4 +57,8 @@ export class TennisController implements Controller {
       player.tool?.use("switch-hand");
     }
   }
+
+  performAction(player: Player, action: string, options?: any): void {
+    // Not used in this controller
+  }
 }

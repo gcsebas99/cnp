@@ -3,6 +3,7 @@ import { Resources } from "@/resources";
 import { InputManager } from "@/managers/input-manager";
 
 export class SplashScene extends Scene {
+  private inputManager = InputManager.instance;
   private background?: Sprite;
   private pressText!: Label;
   private elapsed = 0;
@@ -44,17 +45,8 @@ export class SplashScene extends Scene {
     this.add(this.pressText);
   }
 
-  public onActivate(ctx: ex.SceneActivationContext<undefined>): void {
-
-    const input = InputManager.instance;
-    const handler = () => this.gotoMenu(this.engine);
-
-    input.onKey("press", handler);
-    input.onGamepadButton(handler);
-  }
-
-  public onDeactivate(ctx: ex.SceneActivationContext<undefined>): void {
-    InputManager.instance.clearAllListeners();
+  onActivate() {
+    InputManager.instance.updateConnectedGamepads();
   }
 
   onTransition(direction: "in" | "out") {
@@ -70,9 +62,15 @@ export class SplashScene extends Scene {
   }
 
   public onPreUpdate(engine: ex.Engine, delta: number) {
+    this.inputManager.update();
+    super.onPreUpdate(engine, delta);
+
+    if (this.inputManager.isAnyInputPressed()) {
+      this.gotoMenu(engine);
+    }
+
     // Breathing animation for pressText
     this.elapsed += delta;
-
     // Sinusoidal fade in/out (slow breathing effect)
     const alpha = 0.5 + 0.5 * Math.sin(this.elapsed / 400);
     this.pressText.color = new Color(0, 0, 128, alpha);

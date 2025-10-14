@@ -1,8 +1,7 @@
-import { Engine, FadeInOut, Color, ExcaliburGraphicsContext } from "excalibur";
+import { Engine, ExcaliburGraphicsContext } from "excalibur";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
 import { BaseLdtkScene } from "@/core/base-ldtk-scene";
 import { Resources } from "@/resources";
-import { InputManager } from "@/managers/input-manager";
 import { InputTestActor } from "@/actors/player/input-test-actor";
 import { PopupManager } from "@/managers/popup-manager";
 import { StartSSpriteSheet } from "@/sprite-sheets/start";
@@ -20,7 +19,7 @@ export class BasketDashScene extends BaseLdtkScene {
   // public ballManager?: BallManager;
 
   constructor() {
-    super();
+    super("basketDash");
   }
 
   protected override registerFactories(engine: Engine, ldtk: LdtkResource) {
@@ -176,16 +175,17 @@ export class BasketDashScene extends BaseLdtkScene {
   }
 
   onActivate() {
+    super.onActivate();
+    //InputManager.instance.updateConnectedGamepads();
     //Resources.MenuMusic.play();
   }
 
   onDeactivate() {
     Resources.MenuMusic.stop();
-    InputManager.instance.clearAllListeners();
   }
 
   override onPreUpdate(engine: Engine, delta: number) {
-    // super.onPreUpdate(engine, delta);
+    super.onPreUpdate(engine, delta);
     //InputManager.instance.update();
 
     // // Animate clouds slowly to the left
@@ -199,20 +199,11 @@ export class BasketDashScene extends BaseLdtkScene {
     // }
   }
 
-  override onPostUpdate(engine: ex.Engine, delta: number) {
-    InputManager.instance.update();
-  }
+  // override onPostUpdate(engine: ex.Engine, delta: number) {
+  //   InputManager.instance.update();
+  // }
 
   onPostDraw(ctx: ExcaliburGraphicsContext, elapsed: number) {
     this.testActor?.draw(ctx);
-  }
-
-
-  onTransition(direction: "in" | "out") {
-    return new FadeInOut({
-      direction,
-      color: Color.Black,
-      duration: 500
-    });
   }
 }

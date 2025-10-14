@@ -20,6 +20,8 @@ export class Player extends Actor {
       collisionType: CollisionType.Active
     });
     this.character = character;
+
+    this.addTag("activate-platforms");
   }
 
   onInitialize(engine: Engine) {
@@ -70,6 +72,10 @@ export class Player extends Actor {
 
   public getEquippedTool(): Tool | undefined {
     return this.tool;
+  }
+
+  public performAction(action: string, options?: any) {
+    this.controller.performAction(this, action, options);
   }
 
   public onPreUpdate(engine: Engine, delta: number) {
