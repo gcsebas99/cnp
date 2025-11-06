@@ -59,6 +59,12 @@ export class TennisController implements Controller {
   }
 
   performAction(player: Player, action: string, options?: any): void {
-    // Not used in this controller
+    switch (action) {
+      case "swing":
+        player.tool?.use("swing", options.delta);
+        break;
+      default:
+        break;
+    }
   }
 }

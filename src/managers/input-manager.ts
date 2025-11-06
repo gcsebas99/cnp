@@ -10,6 +10,7 @@ export type InputState = {
   button2: boolean;
   button3: boolean;
   pause: boolean;
+  fullscreen?: boolean;
 
   justPressed: Set<string>;   // names of inputs pressed this frame
   justReleased: Set<string>;  // names of inputs released this frame
@@ -85,7 +86,7 @@ export class InputManager {
   // ==================================================
   private emptyState(): InputState {
     return {
-      left: false, right: false, up: false, down: false, button1: false, button2: false, button3: false, pause: false,
+      left: false, right: false, up: false, down: false, button1: false, button2: false, button3: false, pause: false, fullscreen: false,
       justPressed: new Set(),
       justReleased: new Set(),
       heldTime: new Map()
@@ -118,8 +119,9 @@ export class InputManager {
       this.current.button3 = kb.isHeld(Keys.W);
     }
     if (this._enabled || this._allowPauseOnly) {
-      this.current.pause = kb.isHeld(Keys.Esc);
+      this.current.pause = kb.isHeld(Keys.P);
     }
+    this.current.fullscreen = kb.isHeld(Keys.F);
 
     // --- gamepad mapping ---
     if (gp) {
@@ -137,10 +139,11 @@ export class InputManager {
       if (this._enabled || this._allowPauseOnly) {
         this.current.pause ||= gp.isButtonHeld(9);
       }
+      this.current.fullscreen ||= gp.isButtonHeld(8);
     }
 
     // --- edge detection & held tracking ---
-    for (const key of ["left","right","up","down","button1","button2","button3","pause"] as const) {
+    for (const key of ["left","right","up","down","button1","button2","button3","pause","fullscreen"] as const) {
       if (this.current[key] && !this.previous[key]) {
         this.current.justPressed.add(key);
         this.current.heldTime.set(key, 0); // just started

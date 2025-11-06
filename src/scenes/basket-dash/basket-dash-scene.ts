@@ -1,22 +1,20 @@
-import { Engine, ExcaliburGraphicsContext } from "excalibur";
+import { Engine, ExcaliburGraphicsContext, vec } from "excalibur";
+import { Resources as BasketDashResources } from "@/resources/basket-dash-resources";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
 import { BaseLdtkScene } from "@/core/base-ldtk-scene";
 import { Resources } from "@/resources";
 import { InputTestActor } from "@/actors/player/input-test-actor";
 import { PopupManager } from "@/managers/popup-manager";
-import { StartSSpriteSheet } from "@/sprite-sheets/start";
+import { StartSpriteSheet } from "@/sprite-sheets/start";
+import { LeafEmitter } from "@/actors/emitters/leaf-emitter";
+import { AutumnTree } from "@/actors/objects/autumn-tree";
+import { MovingBackground } from "@/actors/objects/moving-background";
 
 export class BasketDashScene extends BaseLdtkScene {
+  private sky?: MovingBackground;
+  private tree?: AutumnTree;
   private testActor?: InputTestActor;
 
-  // private ballSpawns: Area[] = [];
-  // private opponentSpawns: Area[] = [];
-  // private bouncePlayerArea: Area|null = null;
-  // private bounceOpponentArea: Area|null = null;
-  // private pointWonActors: Actor[] = [];
-  // private pointLostActors: Actor[] = [];
-
-  // public ballManager?: BallManager;
 
   constructor() {
     super("basketDash");
@@ -24,97 +22,15 @@ export class BasketDashScene extends BaseLdtkScene {
 
   protected override registerFactories(engine: Engine, ldtk: LdtkResource) {
 
-    // ldtk.registerEntityIdentifierFactory("PlayerSpawn", (props) => {
-    //   //console.log("PlayerSpawn at", props.worldPos.x, props.worldPos.y);
-    //   const player = new Player("neiti", props.worldPos.x, props.worldPos.y, vec(props.entity.__pivot[0],props.entity.__pivot[1]));
-    //   return player;
-    // });
-
-    // ldtk.registerEntityIdentifierFactory("BallSpawn", (props) => {
-    //   const courtSide = props.entity.fieldInstances.find((f) => f.__identifier === "CourtSide");
-    //   const courtSideValue = (courtSide?.__value as string).toLowerCase() ?? "player";
-    //   const rect:Area = { x: props.worldPos.x, y: props.worldPos.y, width: props.entity.width, height: props.entity.height, side: courtSideValue as "player" | "opponent" };
-    //   //console.log("BallSpawn rect", rect);
-    //   this.ballSpawns.push(rect);
-    //   return undefined;
-    // });
-
-    // ldtk.registerEntityIdentifierFactory("OpponentSpawn", (props) => {
-    //   const rect:Area = { x: props.worldPos.x, y: props.worldPos.y, width: props.entity.width, height: props.entity.height };
-    //   //console.log("OpponentSpawn rect", rect);
-    //   this.opponentSpawns.push(rect);
-
-    //   const actor = new Actor({
-    //     name: "OpponentArea",
-    //     pos: vec(props.worldPos.x, props.worldPos.y),
-    //     anchor: vec(props.entity.__pivot[0],props.entity.__pivot[1]),
-    //     width: props.entity.width,
-    //     height: props.entity.height,
-    //   });
-    //   actor.body.group = TennisCollisionGroups.Opponent;
-    //   actor.body.collisionType = CollisionType.Fixed;
-    //   return actor;
-    // });
-
-    // ldtk.registerEntityIdentifierFactory("Goal", (props) => {
-    //   const courtSide = props.entity.fieldInstances.find((f) => f.__identifier === "CourtSide");
-    //   const courtSideValue = (courtSide?.__value as string).toLowerCase() ?? "player";
-    //   const actor = new Actor({
-    //     name: "Goal-" + courtSideValue,
-    //     pos: vec(props.worldPos.x, props.worldPos.y),
-    //     anchor: vec(props.entity.__pivot[0],props.entity.__pivot[1]),
-    //     width: props.entity.width,
-    //     height: props.entity.height,
-    //   });
-    //   actor.addTag(courtSideValue);
-    //   actor.body.group = TennisCollisionGroups.Goal;
-    //   actor.body.collisionType = CollisionType.Fixed;
-    //   if(courtSideValue === "player") {
-    //     this.pointLostActors.push(actor);
-    //   } else {
-    //     this.pointWonActors.push(actor);
-    //   }
-
-    //   //console.log("GOAL", props.worldPos.x, props.worldPos.y, props.entity.width, props.entity.height, actor);
-    //   return actor;
-    // });
-
-    // ldtk.registerEntityIdentifierFactory("BounceArea", (props) => {
-    //   const courtSide = props.entity.fieldInstances.find((f) => f.__identifier === "CourtSide");
-    //   const courtSideValue = (courtSide?.__value as string).toLowerCase() ?? "player";
-    //   const rect:Area = { x: props.worldPos.x, y: props.worldPos.y, width: props.entity.width, height: props.entity.height, side: courtSideValue as "player" | "opponent" };
-    //   if(courtSideValue === "player") {
-    //     this.bouncePlayerArea = rect;
-    //   } else {
-    //     this.bounceOpponentArea = rect;
-    //   }
-    //   //console.log("BounceArea rect", rect);
-    //   return undefined;
-    // });
-
-    // // timeout for now, it actually should wait for registerEntityIdentifierFactory calls to finish
-    // setTimeout(() => {
-    //   this.ballManager = new BallManager(this);
-    //   this.ballManager.registerAreas({
-    //     ballSpawnRects: this.ballSpawns,
-    //     opponentSpawnRects: this.opponentSpawns,
-    //     pointWonActors: this.pointWonActors,
-    //     pointLostActors: this.pointLostActors,
-    //     bouncePlayer: this.bouncePlayerArea!,
-    //     bounceOpponent: this.bounceOpponentArea!
-    //   });
-    //   console.log("||--Initial serve by opponent!!!!!!!");
-    //   this.ballManager.serveBy("opponent");
-    // }, 1200);
 
   }
 
   override onInitialize(engine: Engine) {
     super.onInitialize(engine);
+    this.initGameGraphics(engine);
 
-
-    this.testActor = new InputTestActor(engine.halfDrawWidth, engine.halfDrawHeight, 300, 200);
-    this.add(this.testActor);
+    // this.testActor = new InputTestActor(engine.halfDrawWidth, engine.halfDrawHeight, 300, 200);
+    // this.add(this.testActor);
     // // Grass court background
     // const tennisGrassCourt = new Actor({
     //   pos: vec(engine.halfDrawWidth, engine.halfDrawHeight),
@@ -154,7 +70,7 @@ export class BasketDashScene extends BaseLdtkScene {
     // this.add(this.clouds);
 
     const animStartSprite = PopupManager.createAnimatedSprite(
-      StartSSpriteSheet,
+      StartSpriteSheet,
       [0, 1],
       300,
       true
@@ -172,12 +88,31 @@ export class BasketDashScene extends BaseLdtkScene {
 
     Resources.MenuMusic.loop = true;
     Resources.MenuMusic.volume = 0.2;
+
+
+    const leaves = new LeafEmitter(vec(960, -100));
+    this.add(leaves);
+  }
+
+  private initGameGraphics(engine: Engine) {
+    // sky with clouds
+    this.sky = new MovingBackground({
+      width: engine.drawWidth,
+      height: 1152,
+      sprite: BasketDashResources.SkyClouds.toSprite(),
+      spriteSize: 2304,
+      direction: "left",
+      speed: 0.015,
+    });
+    this.add(this.sky);
+
+    // tree
+    this.tree = new AutumnTree(127, -54);
+    this.add(this.tree);
   }
 
   onActivate() {
     super.onActivate();
-    //InputManager.instance.updateConnectedGamepads();
-    //Resources.MenuMusic.play();
   }
 
   onDeactivate() {

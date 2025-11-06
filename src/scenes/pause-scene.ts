@@ -1,11 +1,16 @@
+import { BaseScene } from "@/core/base-scene";
 import { InputManager } from "@/managers/input-manager";
 import { PauseManager } from "@/managers/pause-manager";
-import { Scene, Text, Font, Color, ExcaliburGraphicsContext, ScreenElement, Vector, TextAlign, BaseAlign, Engine } from "excalibur";
+import { Scene, Text, Font, Color, ExcaliburGraphicsContext, ScreenElement, Vector, TextAlign, BaseAlign, Engine, FadeInOut } from "excalibur";
 
-export class PauseScene extends Scene {
+export class PauseScene extends BaseScene {
   private pausedManager = PauseManager.instance;
   private quitCounter = 0;
   public bgSceneToRender: Scene | null = null;
+
+  constructor() {
+    super("pause");
+  }
 
   public onInitialize(engine: ex.Engine) {
     const screen = engine.screen;
@@ -46,23 +51,23 @@ export class PauseScene extends Scene {
   }
 
   public onPreUpdate(engine: Engine, delta: number) {
-    InputManager.instance.update();
-    const state = InputManager.instance.state;
     super.onPreUpdate(engine, delta);
+    const state = InputManager.instance.state;
     if (InputManager.instance.state.justPressed.has("pause")) {
       this.pausedManager.resumeScene();
     }
     if (state.heldTime.get("button3")) {
       this.quitCounter += delta;
       if (this.quitCounter > 1500) { // hold for 1.5 seconds
-        console.log("Quitting to main menu...");
         this.quitCounter = 0;
-
-        // tell pausedManager to reset paused scene without resuming
         this.pausedManager.goToMenuScene();
       }
     } else {
       this.quitCounter = 0;
     }
+  }
+
+  override onTransition(direction: "in" | "out"): FadeInOut | undefined {
+    return undefined;
   }
 }

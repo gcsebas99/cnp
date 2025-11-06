@@ -11,6 +11,7 @@ import { Player } from "@/actors/player/player";
 export class Racket extends Tool {
   private pivot!: RacketPivot;
   public swing!: RacketSwing;
+  private racketDisabled = false;
 
   constructor(player: Player) {
     super({
@@ -42,6 +43,13 @@ export class Racket extends Tool {
         this.pivot.switchHand("left");
       }
     });
+
+    this.scene?.on("racket:disable", () => {
+      this.racketDisabled = true;
+    });
+    this.scene?.on("racket:enable", () => {
+      this.racketDisabled = false;
+    });
   }
 
   onPreUpdate(engine: Engine, delta: number) {
@@ -68,40 +76,17 @@ export class Racket extends Tool {
 
   /** Called when ball collides with the racket */
   public onBallHit(ball: Ball, ev: CollisionStartEvent) {
+    if (this.racketDisabled) return;
+
     const winChance = (this.scene as TennisScene).ballManager?.hitBall("player");
-    console.log("Racket onBallHit, winChance", winChance);
+    //console.log("Racket onBallHit, winChance", winChance);
 
     if (winChance && winChance >= 0.75) {
       TennisResources.BallSolidHitSfx.play();
     } else {
       TennisResources.BallHitSfx.play();
     }
-    ball.emit("ball:hit", { by: "player" });
+    //ball.emit("ball:hit", { by: "player" });
     // optionally play a sound, particles, etc.
   }
 }
-
-// const progress = this.swing.getProgress(); // -1 idle, 0..1 during swinging
-    // const momentum = this.swing.getInstantMomentum();
-    // // Determine effectiveness based on progress
-    // let effectiveness = 0.15; // default low
-    // if (progress === -1) {
-    //   effectiveness = 0.15;
-    // } else if (progress <= 0.2 || progress >= 0.8) {
-    //   // first/last 100ms ~ proportion; tune accordingly vs your duration
-    //   effectiveness = 0.40;
-    // } else {
-    //   effectiveness = 0.85;
-    // }
-    // // incorporate momentum slightly
-    // effectiveness = Math.min(1, effectiveness + momentum * 0.2);
-    // // decide if this hit results in a "winning" shot vs neutral return
-    // const win = Math.random() < effectiveness;
-    // // Set new ball velocity: reflect towards opponent side with some randomness
-    // // If racket side is left, ball should go to the right (positive x), and vice versa
-    // const dirX = this.side === "left" ? 1 : -1;
-    // const baseSpeed = 500 + momentum * 400; // tune
-    // const vx = dirX * (baseSpeed * (win ? 1.2 : 0.8));
-    // const vy = (Math.random() - 0.5) * 200; // some vertical variation
-    // ball.vel = vec(vx, vy);
-    // mark ball owner, direction, maybe add spin flag

@@ -9,6 +9,13 @@ import ballUrl from "@/assets/tennis/tennis-ball.png";
 import bounceMp3 from "@/assets/tennis/sfx/sfx-bouncing-ball.mp3";
 import hitMp3 from "@/assets/tennis/sfx/sfx-ball-hit.mp3";
 import solidHitMp3 from "@/assets/tennis/sfx/sfx-ball-solid-hit.mp3";
+import cheering1Mp3 from "@/assets/tennis/sfx/sfx-cheering-1.mp3";
+import cheering2Mp3 from "@/assets/tennis/sfx/sfx-cheering-2.mp3";
+import cheering3Mp3 from "@/assets/tennis/sfx/sfx-cheering-3.mp3";
+import welcomeChutiMp3 from "@/assets/tennis/sfx/sfx-welcome-chuti.mp3";
+import welcomeNeitiMp3 from "@/assets/tennis/sfx/sfx-welcome-neiti.mp3";
+import helloIntro1Mp3 from "@/assets/tennis/sfx/hello-cut-intro-1.mp3";
+import puffPlayerUrl from "@/assets/vfx/puff-player-2x.png";
 import { CustomLoader } from "@/loaders/custom-loader";
 import { getLdtkMapPath } from "@/utils/get-ldtk-map-path";
 
@@ -25,6 +32,14 @@ export const Resources = {
   BounceSfx: new Sound(bounceMp3),
   BallHitSfx: new Sound(hitMp3),
   BallSolidHitSfx: new Sound(solidHitMp3),
+  Cheering1Sfx: new Sound(cheering1Mp3),
+  Cheering2Sfx: new Sound(cheering2Mp3),
+  Cheering3Sfx: new Sound(cheering3Mp3),
+  WelcomeChutiSfx: new Sound(welcomeChutiMp3),
+  WelcomeNeitiSfx: new Sound(welcomeNeitiMp3),
+  HelloIntro1Sfx: new Sound(helloIntro1Mp3),
+  //vfx
+  PuffPlayer: new ImageSource(puffPlayerUrl),
 };
 
 export const TennisMap = new LdtkResource(TennisMapUrl, {

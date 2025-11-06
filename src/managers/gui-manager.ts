@@ -9,10 +9,9 @@ export class GuiManager {
   private scoreElement!: ScreenElement;
   private scoreLabelElement!: ScreenElement;
 
-  private remainingTime = 0; // ms
-  private score = 0;
+  // private remainingTime = 0; // ms
+  // private score = 0;
   private elementsCreated:boolean = false;
-  private isVisible = false;
 
   private constructor(engine: Engine) {
     this.engine = engine;
@@ -31,6 +30,10 @@ export class GuiManager {
       throw new Error("GuiManager not initialized. Call GuiManager.init(engine) first.");
     }
     return GuiManager._instance;
+  }
+
+  public reset() {
+    this.elementsCreated = false;
   }
 
   private createElements() {
@@ -122,7 +125,6 @@ export class GuiManager {
       this.createElements();
       this.elementsCreated = true;
     }
-    this.isVisible = true;
     this.timerElement.get(GraphicsComponent).isVisible = true;
     this.timerLabelElement.get(GraphicsComponent).isVisible = true;
     this.scoreElement.get(GraphicsComponent).isVisible = true;
@@ -131,44 +133,64 @@ export class GuiManager {
 
   /** Hide GUI */
   public hide() {
-    this.isVisible = false;
     this.timerElement.get(GraphicsComponent).isVisible = false;
     this.timerLabelElement.get(GraphicsComponent).isVisible = false;
     this.scoreElement.get(GraphicsComponent).isVisible = false;
     this.scoreLabelElement.get(GraphicsComponent).isVisible = false;
   }
 
-  /** Reset countdown (ms) */
-  public setTimer(ms: number) {
-    this.remainingTime = ms;
-    this.updateTimerText();
-  }
+  // /** Reset countdown (ms) */
+  // public setTimer(ms: number) {
+  //   this.remainingTime = ms;
+  //   this.updateTimerText();
+  // }
 
-  /** Decrement timer */
-  public tick(delta: number) {
-    if (!this.isVisible) return;
-    this.remainingTime = Math.max(0, this.remainingTime - delta);
-    this.updateTimerText();
-  }
+  // /** Decrement timer */
+  // public tick(delta: number) {
+  //   if (!this.isVisible) return;
+  //   this.remainingTime = Math.max(0, this.remainingTime - delta);
+  //   this.updateTimerText();
+  // }
 
-  /** Add to score */
-  public addScore(amount: number = 1) {
-    this.score += amount;
-    this.updateScoreText(true);
-  }
+  // /** Add to score */
+  // public addScore(amount: number = 1) {
+  //   this.score += amount;
+  //   this.updateScoreText(true);
+  // }
 
-  private updateTimerText() {
-    const totalSec = Math.floor(this.remainingTime / 1000);
+  // private updateTimerText() {
+  //   const totalSec = Math.floor(this.remainingTime / 1000);
+  //   const min = Math.floor(totalSec / 60).toString().padStart(2, "0");
+  //   const sec = (totalSec % 60).toString().padStart(2, "0");
+  //   (this.timerElement.graphics.current as Text).text = `${min}:${sec}`;
+  // }
+
+  // private updateScoreText(animate = false) {
+  //   (this.scoreElement.graphics.current as Text).text = this.score.toString().padStart(2, "0");
+
+  //   if (animate) {
+  //     this.scoreElement.actions.scaleTo({scale: vec(1.3, 1.3), duration: 150}).scaleTo({scale: Vector.One, duration: 150});
+  //   }
+  // }
+
+
+
+
+  /** Update timer text directly */
+  public updateTimer(ms: number) {
+    const totalSec = Math.floor(ms / 1000);
     const min = Math.floor(totalSec / 60).toString().padStart(2, "0");
     const sec = (totalSec % 60).toString().padStart(2, "0");
     (this.timerElement.graphics.current as Text).text = `${min}:${sec}`;
   }
 
-  private updateScoreText(animate = false) {
-    (this.scoreElement.graphics.current as Text).text = this.score.toString().padStart(2, "0");
-
+  /** Update score directly */
+  public updateScore(score: number, animate = false) {
+    (this.scoreElement.graphics.current as Text).text = score.toString().padStart(2, "0");
     if (animate) {
-      this.scoreElement.actions.scaleTo({scale: vec(1.3, 1.3), duration: 150}).scaleTo({scale: Vector.One, duration: 150});
+      this.scoreElement.actions
+        .scaleTo({ scale: vec(1.3, 1.3), duration: 150 })
+        .scaleTo({ scale: Vector.One, duration: 150 });
     }
   }
 }

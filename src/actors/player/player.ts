@@ -21,6 +21,7 @@ export class Player extends Actor {
     });
     this.character = character;
 
+    this.addTag("player");
     this.addTag("activate-platforms");
   }
 
@@ -76,6 +77,15 @@ export class Player extends Actor {
 
   public performAction(action: string, options?: any) {
     this.controller.performAction(this, action, options);
+  }
+
+  public getCustomData(prop: string): any {
+    switch (prop) {
+      case "tennis-serve-ball-position":
+        return vec(this.pos.x + (this.width / 2), this.pos.y - 40);
+      default:
+        return null;
+    }
   }
 
   public onPreUpdate(engine: Engine, delta: number) {

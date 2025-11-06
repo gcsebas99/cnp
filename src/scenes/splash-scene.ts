@@ -1,15 +1,16 @@
-import { Actor, Color, Engine, FadeInOut, Font, Label, Scene, Sprite, TextAlign, Vector } from "excalibur";
+import { Actor, Color, Engine, FadeInOut, Font, Label, Sprite, TextAlign, Vector } from "excalibur";
 import { Resources } from "@/resources";
 import { InputManager } from "@/managers/input-manager";
+import { BaseScene } from "@/core/base-scene";
 
-export class SplashScene extends Scene {
+export class SplashScene extends BaseScene {
   private inputManager = InputManager.instance;
   private background?: Sprite;
   private pressText!: Label;
   private elapsed = 0;
 
   constructor() {
-    super();
+    super("splash");
   }
 
   public onInitialize(engine: Engine) {
@@ -45,10 +46,6 @@ export class SplashScene extends Scene {
     this.add(this.pressText);
   }
 
-  onActivate() {
-    InputManager.instance.updateConnectedGamepads();
-  }
-
   onTransition(direction: "in" | "out") {
     return new FadeInOut({
       direction,
@@ -58,11 +55,11 @@ export class SplashScene extends Scene {
   }
 
   private gotoMenu(engine: ex.Engine) {
+    Resources.Select2Sfx.play(0.8);
     engine.goToScene("menu");
   }
 
   public onPreUpdate(engine: ex.Engine, delta: number) {
-    this.inputManager.update();
     super.onPreUpdate(engine, delta);
 
     if (this.inputManager.isAnyInputPressed()) {

@@ -1,6 +1,7 @@
-import { BaseScene } from "@/core/base-scene";
+import { GameScene } from "@/core/game-scene";
 import { Engine, Scene } from "excalibur";
 import { SceneManager } from "@/managers/scene-manager";
+import { SoundManager } from "@/managers/sound-manager";
 
 export class PauseManager {
   private static _instance: PauseManager;
@@ -31,7 +32,8 @@ export class PauseManager {
       return;
     }
     this._pausedScene = scene;
-    (this._pausedScene as BaseScene).isPaused = true;
+    (this._pausedScene as GameScene).isPaused = true;
+    SoundManager.instance.pauseAll();
     this.engine.goToScene("pause");
   }
 
@@ -40,11 +42,11 @@ export class PauseManager {
       console.warn("PauseManager: Trying to resume a scene that is not paused.");
       return;
     }
-    const pausedSceneKey = (this._pausedScene as BaseScene).registeredSceneKey;
-    console.log("Resuming paused scene", pausedSceneKey);
+    const pausedSceneKey = (this._pausedScene as GameScene).registeredSceneKey;
     if (pausedSceneKey) {
       this.engine.goToScene(pausedSceneKey);
-      (this._pausedScene as BaseScene).isPaused = false;
+      SoundManager.instance.resumeAll();
+      (this._pausedScene as GameScene).isPaused = false;
       this._pausedScene = undefined;
     }
   }
@@ -52,7 +54,7 @@ export class PauseManager {
   public goToMenuScene() {
     this.engine.goToScene("menu");
     if (this._pausedScene) {
-      const pausedSceneKey = (this._pausedScene as BaseScene).registeredSceneKey;
+      const pausedSceneKey = (this._pausedScene as GameScene).registeredSceneKey;
       this._pausedScene = undefined;
       SceneManager.instance.resetScene(pausedSceneKey);
     }

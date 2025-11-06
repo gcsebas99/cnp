@@ -5,6 +5,7 @@ import { createNineSliceSprites } from "@/utils/create-nine-slice-sprite";
 import { Buttons } from "@/sprite-sheets/buttons";
 import { drawNineSliceButton } from "@/utils/draw-nine-slice-button";
 import { CursorSheet } from "@/sprite-sheets/cursor";
+import { Resources } from "@/resources";
 
 type MenuState = "main" | "adventure" | "minigames" | "slotDetails";
 
@@ -127,6 +128,8 @@ export class MenuManager {
         this.engine.goToScene("roleRush");
       }
     }
+
+    Resources.Select3Sfx.play(0.6);
   }
 
   private handleBack() {
@@ -135,6 +138,8 @@ export class MenuManager {
     } else if (this.state === "adventure" || this.state === "minigames") {
       this.state = "main";
     }
+
+    Resources.Select1Sfx.play(0.6);
   }
 
   private getActiveMenu() {

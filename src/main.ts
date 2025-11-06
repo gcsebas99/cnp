@@ -1,18 +1,21 @@
 import { DisplayMode, Engine } from "excalibur";
 import { loader } from "@/resources";
+import { loader as endGameLoader } from "@/resources/end-game-resources";
 import { InputManager } from "@/managers/input-manager";
 import { PersistentGameStateManager } from "@/managers/persistent-game-state-manager";
 //
 import { SplashScene } from "@/scenes/splash-scene";
 import { MenuScene } from "@/scenes/menu-scene";
-import { LevelOneScene } from "@/scenes/adventure/level-one-scene";
+import { PauseScene } from "@/scenes/pause-scene";
+import { EndGameScene } from "@/scenes/end-game-scene";
 //
 import { PHYSICS_CONFIG } from "@/config/physiscs";
 import { PopupManager } from "@/managers/popup-manager";
 import { GuiManager } from "@/managers/gui-manager";
 import { PauseManager } from "@/managers/pause-manager";
-import { PauseScene } from "@/scenes/pause-scene";
 import { SceneManager } from "@/managers/scene-manager";
+import { FullscreenManager } from "@/managers/fullscreen-manager";
+import { EndGameManager } from "@/managers/end-game-manager";
 
 // Goal is to keep main.ts small and just enough to configure the engine
 
@@ -27,17 +30,19 @@ const game = new Engine({
     splash: SplashScene,
     pause: PauseScene,
     menu: MenuScene,
-    levelOne: LevelOneScene,
+    endgame: {scene: EndGameScene, loader: endGameLoader},
   },
 });
 
 SceneManager.init(game)
 SceneManager.instance.addGameScenes();
+FullscreenManager.init(game);
 InputManager.init(game);
 GuiManager.init(game);
 PopupManager.init(game);
 PauseManager.init(game);
 PersistentGameStateManager.init();
+EndGameManager.init(game);
 
 game.physics.gravity = PHYSICS_CONFIG.gravity;
 

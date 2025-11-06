@@ -1,11 +1,10 @@
+import { FullscreenManager } from "@/managers/fullscreen-manager";
+import { GuiManager } from "@/managers/gui-manager";
 import { InputManager } from "@/managers/input-manager";
-import { PauseManager } from "@/managers/pause-manager";
 import { Color, Engine, FadeInOut, Scene } from "excalibur";
 
 export abstract class BaseScene extends Scene {
-  protected canBePaused: boolean = true;
   public registeredSceneKey: string = "";
-  public isPaused: boolean = false;
 
   constructor(name?: string) {
     super();
@@ -14,6 +13,7 @@ export abstract class BaseScene extends Scene {
 
   onActivate() {
     InputManager.instance.updateConnectedGamepads();
+    GuiManager.instance.reset();
   }
 
   onPreUpdate(engine: Engine, delta: number) {
@@ -21,13 +21,12 @@ export abstract class BaseScene extends Scene {
     super.onPreUpdate(engine, delta);
 
     const inputState = InputManager.instance.state;
-    if (inputState.justPressed.has("pause") && this.canBePaused) {
-      PauseManager.instance.pauseScene(this);
+    if (inputState.justPressed.has("fullscreen")) {
+      FullscreenManager.instance.toggleFullscreen();
     }
   }
 
-  onTransition(direction: "in" | "out") {
-    if (this.isPaused) return undefined; // No transition if pausing or resuming from pause
+  onTransition(direction: "in" | "out"): FadeInOut | undefined {
     return new FadeInOut({
       direction,
       color: Color.Black,

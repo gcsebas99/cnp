@@ -1,13 +1,14 @@
-import { Color, Engine, ExcaliburGraphicsContext, FadeInOut, Scene } from "excalibur";
+import { Color, Engine, ExcaliburGraphicsContext, FadeInOut } from "excalibur";
 import { Resources } from "@/resources";
 import { MenuManager } from "@/managers/menu-manager";
-import { InputManager } from "@/managers/input-manager";
+import { BaseScene } from "@/core/base-scene";
+import { SoundManager } from "@/managers/sound-manager";
 
-export class MenuScene extends Scene {
+export class MenuScene extends BaseScene {
   private menuManager!: MenuManager;
 
   constructor() {
-    super();
+    super("menu");
   }
 
   onInitialize(engine: Engine) {
@@ -21,14 +22,14 @@ export class MenuScene extends Scene {
   }
 
   onActivate() {
-    InputManager.instance.updateConnectedGamepads();
+    SoundManager.instance.play(Resources.MenuMusic, 0.3);
     // Reset state when entering the menu scene
     this.menuManager.setState("main");
-    //Resources.MenuMusic.play();
   }
 
   onDeactivate() {
-    Resources.MenuMusic.stop();
+    SoundManager.instance.stopAll();
+    SoundManager.instance.cleanup();
   }
 
   onPostDraw(ctx: ExcaliburGraphicsContext, elapsed: number) {
@@ -36,7 +37,7 @@ export class MenuScene extends Scene {
   }
 
   onPreUpdate(engine: Engine, delta: number) {
-    InputManager.instance.update();
+    super.onPreUpdate(engine, delta);
     this.menuManager.update(delta);
   }
 

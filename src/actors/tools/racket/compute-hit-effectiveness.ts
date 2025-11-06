@@ -1,25 +1,34 @@
 
-export function computeHitEffectiveness(info: { phase: string; elapsed: number }) {
-  const baseSpeedMult = 1.0;
-  let newSpeedMult = baseSpeedMult;
-  let winChance = 0.2; // default
+export const computeHitEffectiveness = (info: { phase: string; elapsed: number }) => {
+  let winChanceLabel = "VERY_LOW";
+  let newSpeedMult = 1.0;
+  let winChance = 0.15;
+  let targetZone = "short";
 
-  if (info.phase === "idle" || info.phase === "rest") {
+  const e = info.elapsed;
+  if (info.phase === "idle" || info.phase === "rest" || (info.phase === "swing" && (e <= 100 || e >= 400))) {
+    winChanceLabel = "VERY_LOW";
     newSpeedMult = 1.0;
-    winChance = 0.2;
+    winChance = 0.15;
+    targetZone = "short";
   } else if (info.phase === "swing") {
-    const e = info.elapsed;
-    if ((e >= 0 && e < 80) || (e >= 420 && e < 500)) {
+    if ((e > 100 && e <= 200) || (e >= 300 && e < 400)) {
+      winChanceLabel = "LOW";
       newSpeedMult = 1.1;
-      winChance = 0.4;
-    } else if ((e >= 80 && e < 160) || (e >= 340 && e < 420)) {
-      newSpeedMult = 1.2;
-      winChance = 0.5;
-    } else if (e >= 160 && e < 340) {
-      newSpeedMult = 1.5;
-      winChance = 0.75;
+      winChance = 0.3;
+      targetZone = Math.random() < 0.5 ? "short" : "deep";
+    } else if ((e > 200 && e <= 230) || (e >= 270 && e < 300)) {
+      winChanceLabel = "HIGH";
+      newSpeedMult = 1.4;
+      winChance = 0.55;
+      targetZone = "deep";
+    } else if (e > 230 && e < 270) {
+      winChanceLabel = "VERY_HIGH";
+      newSpeedMult = 2.5;
+      winChance = 0.80;
+      targetZone = "deep";
     }
   }
 
-  return { newSpeedMult, winChance };
+  return { winChanceLabel, winChance, newSpeedMult, targetZone };
 }

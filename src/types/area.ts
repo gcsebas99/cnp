@@ -8,5 +8,5 @@ type Area = {
 }
 
 export {
-  type Area
+  type Area,
 };

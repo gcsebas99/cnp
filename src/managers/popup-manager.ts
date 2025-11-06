@@ -1,4 +1,5 @@
 import { Color, Engine, Graphic, ScreenElement, Sound, vec, Vector, Text, AnimationStrategy, Animation, SpriteSheet } from "excalibur";
+import { SoundManager } from "@/managers/sound-manager";
 
 type PopupOptions = {
   duration?: number;         // ms to stay visible
@@ -15,6 +16,7 @@ type PopupOptions = {
 export class PopupManager {
   private static _instance: PopupManager;
   private engine!: Engine;
+
 
   private constructor(engine: Engine) {
     this.engine = engine;
@@ -65,13 +67,13 @@ export class PopupManager {
 
     // Use sprite or text
     if (sprite) popup.graphics.use(sprite);
-    else if (text) popup.graphics.use(new Text({ text, color: Color.White }));
+    else if (text) popup.graphics.use(new Text({ text, color: Color.Red }));
 
     this.engine.currentScene.add(popup);
 
     // Sound appear (with optional delay)
     if (soundAppear) {
-      this.engine.clock.schedule(() => soundAppear.play(), soundAppearDelay);
+      this.engine.clock.schedule(() => SoundManager.instance.playOnce(soundAppear), soundAppearDelay);
     }
 
     // Appear animation (with optional delay)
@@ -81,7 +83,9 @@ export class PopupManager {
 
     // Stay for `duration`, then vanish
     popup.actions.delay(duration).callMethod(() => {
-      soundVanish?.play();
+      if(soundVanish) {
+        SoundManager.instance.playOnce(soundVanish);
+      }
     }).fade(0, 300).die();
   }
 

@@ -1,55 +1,108 @@
-import { GameOrchestration } from "@/orchestration/game-orchestration";
+import { GameOrchestration } from "@/core/game-orchestration";
+import { Resources as TennisResources } from "@/resources/tennis-resources";
+import { TennisScene } from "@/scenes/tennis/tennis-scene";
+import { TimelineScheduler } from "@/core/timeline-scheduler";
+import { SoundManager } from "@/managers/sound-manager";
+import { InputManager } from "@/managers/input-manager";
+import { PopupManager } from "@/managers/popup-manager";
+import { Resources } from "@/resources";
+import { animTimesUpSprite } from "@/sprite-sheets/times-up";
+import { EndGameManager } from "@/managers/end-game-manager";
 
 export class TennisOrchestration extends GameOrchestration {
   async start() {
     this.isRunning = true;
 
-    // Fade in scene
-    await this.fadeIn(1000);
+    const events = [
+      { ms: 500, callback: () => {
+          SoundManager.instance.playOnce(TennisResources.Cheering1Sfx, 0.3);
+      }},
+      { ms: 2000, callback: () => {
+          SoundManager.instance.playOnce(TennisResources.WelcomeChutiSfx);
+      }},
+      { ms: 6500, callback: () => {
+          (this.scene as TennisScene).addPlayerToScene();
+      }},
+      { ms: 6600, callback: () => {
+          SoundManager.instance.playOnce(TennisResources.Cheering3Sfx, 0.7);
+      }},
+      { ms: 15000, callback: () => {
+          TennisResources.Cheering3Sfx.volume = 0.4;
+      }},
+      { ms: 17000, callback: () => {
+          TennisResources.Cheering3Sfx.volume = 0.1;
+      }},
+      { ms: 18700, callback: () => {
+          (this.scene as TennisScene).showStartPromptAndGUI();
+      }},
+    ];
 
-    // Player walk-in
-    await this.playerWalkIn();
+    this.timeline = new TimelineScheduler(events, {
+      totalMs: 21500,
+      onComplete: () => {
+        this.isRunning = false;
+        console.log("Tennis intro complete — start game!");
+        // TennisResources.HelloIntro1Sfx.volume = 0.7;
+        // TennisResources.HelloIntro1Sfx.loop = true;
+        // TennisResources.HelloIntro1Sfx.play();
+        //this.scene.enableInput();
+      },
+    });
 
-    // Stretch animation (placeholder)
-    await this.delay(1000);
+    this.timeline.start();
+  }
 
-    // Setup timer + score UI
-    this.setupUI();
+  async devStart() {
+    this.isRunning = true;
+    console.log("TennisOrchestration DEV START");
+    (this.scene as TennisScene).addPlayerToScene();
+    (this.scene as TennisScene).showStartPromptAndGUI();
+    await this.delay(3000);
+    (this.scene as TennisScene).startGame();
+    this.isRunning = false;
+    // Enable input immediately
+    //this.scene.enableInput();
+  }
 
-    // // "Start" popup
-    // PopupManager.instance.show({ text: "Start!", duration: 1000 });
-
-    // // Music
-    // Resources.MusicTennis.play();
-
-    // // Enable input + timer
-    // InputManager.instance.enable();
-    // this.startTimer(120000); // 2 min
+  async play() {
+    this.isRunning = true;
   }
 
   async end() {
-    this.isRunning = false;
+    this.isRunning = true;
+    InputManager.instance.disable();
 
-    // // Disable input
-    // InputManager.instance.disable();
+    const events = [
+      { ms: 100, callback: () => {
+          PopupManager.instance.show({
+            text: "Time's up!",
+            duration: 1500,
+            soundAppear: Resources.TimesUpSfx,
+            sprite: animTimesUpSprite,
+            soundAppearDelay: 100,
+          });
+      }},
+      { ms: 1000, callback: () => {
+          SoundManager.instance.playOnce(TennisResources.Cheering2Sfx, 0.5);
+      }},
+    ];
 
-    // // "Finish" popup
-    // PopupManager.instance.show({ text: "Finish!", duration: 1500 });
+    this.timeline = new TimelineScheduler(events, {
+      totalMs: 6100,
+      onComplete: () => {
+        this.isRunning = false;
+        EndGameManager.instance.gameHasEnded(this.scene, (this.scene as TennisScene).getScore());
+      },
+    });
 
-    // await this.delay(1500);
+    this.timeline.start();
+  }
 
-    // // Fade out scene
-    // await this.fadeOut(1000);
-
-    // // Switch to results scene
-    // this.engine.goToScene("ResultsScene");
+  update(delta: number) {
+    this.timeline?.update(delta);
   }
 
   // Helpers
-  private fadeIn(ms: number) { /* wrapper around a fade actor */ }
-  //private fadeOut(ms: number) { /* wrapper around a fade actor */ }
   private delay(ms: number) { return new Promise(res => setTimeout(res, ms)); }
-  private async playerWalkIn() { /* animate player pos */ }
-  private setupUI() { /* show timer + score */ }
-  //private startTimer(ms: number) { /* handle game countdown */ }
+
 }

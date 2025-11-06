@@ -8,6 +8,7 @@ import { loader as basketDashLoader } from "@/resources/basket-dash-resources";
 //
 import { RoleRushScene } from "@/scenes/role-rush/role-rush-scene";
 import { loader as roleRushLoader } from "@/resources/role-rush-resources";
+import { LevelOneScene } from "@/scenes/adventure/level-one-scene";
 
 export class SceneManager {
   private static _instance: SceneManager;
@@ -35,6 +36,7 @@ export class SceneManager {
     this.engine.addScene("tennis", {scene: TennisScene, loader: tennisLoader});
     this.engine.addScene("basketDash", {scene: BasketDashScene, loader: basketDashLoader});
     this.engine.addScene("roleRush", {scene: RoleRushScene, loader: roleRushLoader});
+    this.engine.addScene("levelOne", {scene: LevelOneScene });
   }
 
   public resetScene(name: string) {

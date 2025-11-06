@@ -8,10 +8,10 @@ import { MovingBackground } from "@/actors/objects/moving-background";
 import { Resources as RoleRushResources } from "@/resources/role-rush-resources";
 import { Player } from "@/actors/player/player";
 import { RoleRushController } from "@/controllers/role-rush-controller";
-import { GuiManager } from "@/managers/gui-manager";
 import { SolidWall } from "@/actors/objects/solid-wall";
 import { RoleRushDoor } from "@/actors/objects/role-rush-door";
 import { PlatformWithFan } from "@/actors/objects/platform-with-fan";
+import { SoundManager } from "@/managers/sound-manager";
 
 export class RoleRushScene extends BaseLdtkScene {
   private background?: MovingBackground;
@@ -21,14 +21,6 @@ export class RoleRushScene extends BaseLdtkScene {
   //player
   private player?: Player;
 
-  // private ballSpawns: Area[] = [];
-  // private opponentSpawns: Area[] = [];
-  // private bouncePlayerArea: Area|null = null;
-  // private bounceOpponentArea: Area|null = null;
-  // private pointWonActors: Actor[] = [];
-  // private pointLostActors: Actor[] = [];
-
-  // public ballManager?: BallManager;
 
   constructor() {
     super("roleRush");
@@ -51,89 +43,6 @@ export class RoleRushScene extends BaseLdtkScene {
       this.player.controller = new RoleRushController();
       return this.player;
     });
-
-    // ldtk.registerEntityIdentifierFactory("PlayerSpawn", (props) => {
-    //   //console.log("PlayerSpawn at", props.worldPos.x, props.worldPos.y);
-    //   const player = new Player("neiti", props.worldPos.x, props.worldPos.y, vec(props.entity.__pivot[0],props.entity.__pivot[1]));
-    //   return player;
-    // });
-
-    // ldtk.registerEntityIdentifierFactory("BallSpawn", (props) => {
-    //   const courtSide = props.entity.fieldInstances.find((f) => f.__identifier === "CourtSide");
-    //   const courtSideValue = (courtSide?.__value as string).toLowerCase() ?? "player";
-    //   const rect:Area = { x: props.worldPos.x, y: props.worldPos.y, width: props.entity.width, height: props.entity.height, side: courtSideValue as "player" | "opponent" };
-    //   //console.log("BallSpawn rect", rect);
-    //   this.ballSpawns.push(rect);
-    //   return undefined;
-    // });
-
-    // ldtk.registerEntityIdentifierFactory("OpponentSpawn", (props) => {
-    //   const rect:Area = { x: props.worldPos.x, y: props.worldPos.y, width: props.entity.width, height: props.entity.height };
-    //   //console.log("OpponentSpawn rect", rect);
-    //   this.opponentSpawns.push(rect);
-
-    //   const actor = new Actor({
-    //     name: "OpponentArea",
-    //     pos: vec(props.worldPos.x, props.worldPos.y),
-    //     anchor: vec(props.entity.__pivot[0],props.entity.__pivot[1]),
-    //     width: props.entity.width,
-    //     height: props.entity.height,
-    //   });
-    //   actor.body.group = TennisCollisionGroups.Opponent;
-    //   actor.body.collisionType = CollisionType.Fixed;
-    //   return actor;
-    // });
-
-    // ldtk.registerEntityIdentifierFactory("Goal", (props) => {
-    //   const courtSide = props.entity.fieldInstances.find((f) => f.__identifier === "CourtSide");
-    //   const courtSideValue = (courtSide?.__value as string).toLowerCase() ?? "player";
-    //   const actor = new Actor({
-    //     name: "Goal-" + courtSideValue,
-    //     pos: vec(props.worldPos.x, props.worldPos.y),
-    //     anchor: vec(props.entity.__pivot[0],props.entity.__pivot[1]),
-    //     width: props.entity.width,
-    //     height: props.entity.height,
-    //   });
-    //   actor.addTag(courtSideValue);
-    //   actor.body.group = TennisCollisionGroups.Goal;
-    //   actor.body.collisionType = CollisionType.Fixed;
-    //   if(courtSideValue === "player") {
-    //     this.pointLostActors.push(actor);
-    //   } else {
-    //     this.pointWonActors.push(actor);
-    //   }
-
-    //   //console.log("GOAL", props.worldPos.x, props.worldPos.y, props.entity.width, props.entity.height, actor);
-    //   return actor;
-    // });
-
-    // ldtk.registerEntityIdentifierFactory("BounceArea", (props) => {
-    //   const courtSide = props.entity.fieldInstances.find((f) => f.__identifier === "CourtSide");
-    //   const courtSideValue = (courtSide?.__value as string).toLowerCase() ?? "player";
-    //   const rect:Area = { x: props.worldPos.x, y: props.worldPos.y, width: props.entity.width, height: props.entity.height, side: courtSideValue as "player" | "opponent" };
-    //   if(courtSideValue === "player") {
-    //     this.bouncePlayerArea = rect;
-    //   } else {
-    //     this.bounceOpponentArea = rect;
-    //   }
-    //   //console.log("BounceArea rect", rect);
-    //   return undefined;
-    // });
-
-    // // timeout for now, it actually should wait for registerEntityIdentifierFactory calls to finish
-    // setTimeout(() => {
-    //   this.ballManager = new BallManager(this);
-    //   this.ballManager.registerAreas({
-    //     ballSpawnRects: this.ballSpawns,
-    //     opponentSpawnRects: this.opponentSpawns,
-    //     pointWonActors: this.pointWonActors,
-    //     pointLostActors: this.pointLostActors,
-    //     bouncePlayer: this.bouncePlayerArea!,
-    //     bounceOpponent: this.bounceOpponentArea!
-    //   });
-    //   console.log("||--Initial serve by opponent!!!!!!!");
-    //   this.ballManager.serveBy("opponent");
-    // }, 1200);
 
   }
 
@@ -184,8 +93,8 @@ export class RoleRushScene extends BaseLdtkScene {
 
 
     // move to game orchestration
-    GuiManager.instance.show();
-    GuiManager.instance.setTimer(3 * 60 * 1000);
+    //GuiManager.instance.show();
+    //GuiManager.instance.setTimer(3 * 60 * 1000);
 
     Resources.MenuMusic.loop = true;
     Resources.MenuMusic.volume = 0.15;
@@ -193,8 +102,7 @@ export class RoleRushScene extends BaseLdtkScene {
 
   onActivate() {
     super.onActivate();
-    //InputManager.instance.updateConnectedGamepads();
-    Resources.MenuMusic.play();
+    SoundManager.instance.playOnce(Resources.MenuMusic, 0.8);
   }
 
   onDeactivate() {
@@ -202,9 +110,8 @@ export class RoleRushScene extends BaseLdtkScene {
   }
 
   override onPreUpdate(engine: Engine, delta: number) {
-    //InputManager.instance.update();
     super.onPreUpdate(engine, delta);
-    GuiManager.instance.tick(delta);
+    //GuiManager.instance.tick(delta);
 
   }
 }

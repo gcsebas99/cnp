@@ -3,6 +3,7 @@ import { PlatformWithFanSprite } from "@/sprite-sheets/role-rush-terrain";
 import { ElevatorMarkerSheet } from "@/sprite-sheets/elevator-marker";
 import { InvertedFanSheet } from "@/sprite-sheets/fan-inverted";
 import { Resources as RoleRushResources } from "@/resources/role-rush-resources";
+import { SoundManager } from "@/managers/sound-manager";
 
 type PlatformState =
   | "idle"
@@ -94,9 +95,6 @@ export class PlatformWithFan extends Actor {
       const other = event.other.owner;
       if (event.side === Side.Top) {
         if (this.state === "idle" && other && other.hasTag("activate-platforms")) {
-
-          console.log("Platform activation requested by", other.name);
-
           this.objectRequestingActivation = true;
           engine.clock.schedule(() => {
             if (!this.objectRequestingActivation) return;
@@ -121,8 +119,7 @@ export class PlatformWithFan extends Actor {
 
     this.marker.graphics.use(ElevatorMarkerSheet.getSprite(1, 0)!);
     this.fan.graphics.use(this.animFanUp);
-    RoleRushResources.FanUpSfx.volume = 0.5;
-    RoleRushResources.FanUpSfx.play();
+    SoundManager.instance.playOnce(RoleRushResources.FanUpSfx, 0.5);
     this.moveUp(engine);
   }
 
@@ -143,8 +140,7 @@ export class PlatformWithFan extends Actor {
     this.state = "movingDown";
     RoleRushResources.FanUpSfx.stop();
     this.fan.graphics.use(this.animFanDown);
-    RoleRushResources.FanDownSfx.volume = 0.5;
-    RoleRushResources.FanDownSfx.play();
+    SoundManager.instance.playOnce(RoleRushResources.FanDownSfx, 0.5);
     this.actions.clearActions();
     this.actions.moveTo(this.startPos, this.downSpeed).callMethod(() => {
       this.state = "resetting";

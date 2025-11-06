@@ -9,10 +9,8 @@ export class CustomLoader extends DefaultLoader {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     // Returns the progress of the loader as a number between [0, 1] inclusive.
-    //console.log("||--Progress", this.progress);
   }
   override async onUserAction(): Promise<void> {
-    //console.log("||--onUserAction", this.progress);
     // Return a promise that resolves when the user interacts with the loading screen in some way,
     // usually a click.
     //

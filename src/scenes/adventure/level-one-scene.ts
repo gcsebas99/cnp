@@ -1,10 +1,11 @@
-import { Color, Engine, FadeInOut, Scene } from "excalibur";
+import { Color, Engine } from "excalibur";
 import { Resources } from "@/resources";
+import { GameScene } from "@/core/game-scene";
 
-export class LevelOneScene extends Scene {
+export class LevelOneScene extends GameScene {
 
   constructor() {
-    super();
+    super("levelOne");
   }
 
   onInitialize(engine: Engine) {
@@ -14,18 +15,10 @@ export class LevelOneScene extends Scene {
   }
 
   onActivate() {
-   //Resources.MenuMusic.play();
+
   }
 
   onDeactivate() {
     Resources.MenuMusic.stop();
-  }
-
-  onTransition(direction: "in" | "out") {
-    return new FadeInOut({
-      direction,
-      color: Color.Black,
-      duration: 500
-    });
   }
 }

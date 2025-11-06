@@ -3,6 +3,7 @@ import { Actor, CollisionType, Engine, range, vec, Vector, Animation, AnimationS
 import { Player } from "../player/player";
 import { RoleRushDoorSheet } from "@/sprite-sheets/role-rush-door";
 import { Resources as RoleRushResources } from "@/resources/role-rush-resources";
+import { SoundManager } from "@/managers/sound-manager";
 
 export class RoleRushDoor extends Actor {
   private input = InputManager.instance;
@@ -61,7 +62,6 @@ export class RoleRushDoor extends Actor {
 
     const input = this.input.state;
     if (input.justPressed.has("up")) {
-      console.log("Door activated by player");
       this.openDoor(engine);
     }
   }
@@ -77,7 +77,7 @@ export class RoleRushDoor extends Actor {
     // 1. Play open animation
     this.animOpen.reset();
     this.graphics.use(this.animOpen);
-    RoleRushResources.DoorOpenSfx.play();
+    SoundManager.instance.playOnce(RoleRushResources.DoorOpenSfx, 0.5);
     await new Promise((r) => setTimeout(r, 480));
 
     // 3. Fade out player
@@ -92,7 +92,7 @@ export class RoleRushDoor extends Actor {
     // 4. Play close animation
     this.animClose.reset();
     this.graphics.use(this.animClose);
-    RoleRushResources.DoorCloseSfx.play();
+    SoundManager.instance.playOnce(RoleRushResources.DoorCloseSfx, 0.5);
     await new Promise((r) => setTimeout(r, 480));
 
     // 5. Return to idle

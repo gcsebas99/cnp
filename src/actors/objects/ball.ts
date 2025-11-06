@@ -12,6 +12,8 @@ export class Ball extends Actor {
   private yScaleMin = 384; // far
   private yScaleMax = 1024; // near
 
+  public lastPlayerWinChance = 0.0;
+
   constructor(x = 0, y = 0, radius = 12) {
     super({
       name: "Ball",
@@ -56,13 +58,6 @@ export class Ball extends Actor {
       if (otherActor.body.group === TennisCollisionGroups.Goal) {
         // notify scene or manager
         this.emit("ball:goal", { actor: otherActor });
-        return;
-      }
-      if (otherActor.body.group === TennisCollisionGroups.Opponent) {
-        // notify scene or manager
-        //sound for racket hit
-        TennisResources.BallHitSfx.play();
-        this.emit("ball:opponent", { actor: otherActor });
         return;
       }
     });

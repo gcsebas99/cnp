@@ -1,8 +1,8 @@
 import { Engine, DefaultLoader } from "excalibur";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
-import { BaseScene } from "@/core/base-scene";
+import { GameScene } from "@/core/game-scene";
 
-export abstract class BaseLdtkScene extends BaseScene {
+export abstract class BaseLdtkScene extends GameScene {
   protected ldtk?: LdtkResource;
 
   override onPreLoad(loader: DefaultLoader) {
