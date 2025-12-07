@@ -1,4 +1,4 @@
-import { Engine, Actor, vec, CollisionType, Vector } from "excalibur";
+import { Engine, Actor, vec, CollisionType, Vector, Color } from "excalibur";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
 import { BaseLdtkScene } from "@/core/base-ldtk-scene";
 import { Resources } from "@/resources";
@@ -19,6 +19,9 @@ import { animStartSprite } from "@/sprite-sheets/start";
 import { GameState } from "@/types/game-state";
 import { ServiceArea } from "@/actors/objects/service-area";
 import { BounceTrapezoidPoints } from "@/types/bounce-trapezoid-points";
+import { ScoreManager } from "@/managers/score-manager";
+
+const GAME_TIME_MS = 2 * 60 * 1000; // 2 minutes
 
 export class TennisScene extends BaseLdtkScene {
   private orchestration!: TennisOrchestration;
@@ -40,9 +43,6 @@ export class TennisScene extends BaseLdtkScene {
   public ballManager?: BallManager;
 
   // game state
-  private timeLeftMs: number = 2 * 60 * 1000; // 2 minutes
-  private score: number = 0;
-  //private isGameRunning: boolean = false;
   private state: GameState = GameState.Waiting;
 
   constructor() {
@@ -137,6 +137,7 @@ export class TennisScene extends BaseLdtkScene {
 
   override onInitialize(engine: Engine) {
     super.onInitialize(engine);
+    this.scoreManager = new ScoreManager(engine, 0, GAME_TIME_MS);
     this.initGameGraphics(engine);
     this.state = GameState.Waiting;
 
@@ -204,9 +205,9 @@ export class TennisScene extends BaseLdtkScene {
       animationDelay: 800,
       soundAppearDelay: 500,
     });
-    GuiManager.instance.show();
-    GuiManager.instance.updateTimer(this.timeLeftMs);
-    GuiManager.instance.updateScore(this.score);
+    GuiManager.instance.show(Color.Yellow, Color.Red, Color.Yellow, Color.Red);
+    GuiManager.instance.updateTimer(this.scoreManager!.getTimeLeftMs());
+    GuiManager.instance.updateScore(this.scoreManager!.getScore());
   }
 
   public addPlayerToScene() {
@@ -246,27 +247,26 @@ export class TennisScene extends BaseLdtkScene {
   override onPreUpdate(engine: Engine, delta: number) {
     super.onPreUpdate(engine, delta);
     this.orchestration.update(delta);
-    //GuiManager.instance.tick(delta);
 
     if (this.state === GameState.Running) {
       // Decrease time
-      this.timeLeftMs = Math.max(0, this.timeLeftMs - delta);
-      GuiManager.instance.updateTimer(this.timeLeftMs);
+      this.scoreManager?.setTimeLeft(delta);
+      GuiManager.instance.updateTimer(this.scoreManager!.getTimeLeftMs());
     }
 
-    if (this.timeLeftMs <= 0 && this.state === GameState.Running) {
+    if (this.scoreManager!.isTimeUp() && this.state === GameState.Running) {
       this.endGame();
     }
   }
 
   public addScore(points = 1) {
-    this.score += points;
+    this.scoreManager?.add(points);
     Resources.ScoreUpSfx.play();
-    GuiManager.instance.updateScore(this.score, true);
+    GuiManager.instance.updateScore(this.scoreManager!.getScore(), true);
   }
 
   public getScore(): number {
-    return this.score;
+    return this.scoreManager!.getScore();
   }
 
 }

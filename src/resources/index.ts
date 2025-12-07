@@ -12,6 +12,13 @@ import scoreUpMp3 from "@/assets/sfx/sfx-score-up.mp3";
 import select1Mp3 from "@/assets/sfx/sfx-select-1.mp3";
 import select2Mp3 from "@/assets/sfx/sfx-select-2.mp3";
 import select3Mp3 from "@/assets/sfx/sfx-select-3.mp3";
+import menuBasketJpg from "@/assets/ui/menu-basket.jpg";
+import menuRoleJpg from "@/assets/ui/menu-role.jpg";
+import menuTennisJpg from "@/assets/ui/menu-tennis.jpg";
+import menuFramePng from "@/assets/ui/menu-frame.png";
+import menuFrameCursorPng from "@/assets/ui/menu-frame-selected.png";
+import chutiWalkingPng from "@/assets/player/c_walk_74x138.png";
+
 
 // It is convenient to put your resources in one place
 export const Resources = {
@@ -21,6 +28,14 @@ export const Resources = {
   Cursor: new ImageSource(cursorPng),
   Start: new ImageSource(startPng),
   TimesUp: new ImageSource(timesUpPng),
+  //menu
+  GameBasket: new ImageSource(menuBasketJpg),
+  GameRole: new ImageSource(menuRoleJpg),
+  GameTennis: new ImageSource(menuTennisJpg),
+  MenuFrame: new ImageSource(menuFramePng),
+  MenuFrameCursor: new ImageSource(menuFrameCursorPng),
+  //player sprites
+  ChutiWalking: new ImageSource(chutiWalkingPng),
   // music
   MenuMusic: new Sound(menuMusicMp3),
   // sfx

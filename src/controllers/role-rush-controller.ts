@@ -64,6 +64,9 @@ export class RoleRushController implements Controller {
     // --- Simple facing direction ---
     if (dir !== 0) {
       player.graphics.flipHorizontal = dir < 0;
+      player.animation.set(this.isRunning ? "run" : "walk");
+    } else {
+      player.animation.set("idle");
     }
   }
 

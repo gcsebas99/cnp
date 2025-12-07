@@ -2,9 +2,9 @@ import { Engine, Color, ExcaliburGraphicsContext, Text, Font, TextAlign, BaseAli
 import { InputManager } from "./input-manager";
 import { AdventureSlot, PersistentGameStateManager } from "./persistent-game-state-manager";
 import { createNineSliceSprites } from "@/utils/create-nine-slice-sprite";
-import { Buttons } from "@/sprite-sheets/buttons";
+//import { Buttons } from "@/sprite-sheets/buttons";
 import { drawNineSliceButton } from "@/utils/draw-nine-slice-button";
-import { CursorSheet } from "@/sprite-sheets/cursor";
+//import { CursorSheet } from "@/sprite-sheets/cursor";
 import { Resources } from "@/resources";
 
 type MenuState = "main" | "adventure" | "minigames" | "slotDetails";
@@ -16,10 +16,11 @@ interface MenuItem {
 
 export class MenuManager {
   private engine: Engine;
-  private state: MenuState = "main";
+  private state: MenuState = "minigames";
   private hIndex: number = 0; // horizontal selection index
   private detailIndex: number = 0; // vertical selection index inside slots
   private elapsed = 0;
+  private cursorX = 0;
 
   private mainMenu: MenuItem[] = [
     { label: "Adventure", color: Color.Chartreuse },
@@ -27,9 +28,9 @@ export class MenuManager {
   ];
 
   private minigames: MenuItem[] = [
-    { label: "Tennis", color: Color.Violet },
     { label: "Basket Dash", color: Color.Orange },
-    { label: "Role Rush", color: Color.Gray }
+    { label: "Role Rush", color: Color.Gray },
+    { label: "Tennis", color: Color.Violet },
   ];
 
   private memorySlots: AdventureSlot[] = [
@@ -44,7 +45,7 @@ export class MenuManager {
 
   constructor(engine: Engine) {
     this.engine = engine;
-    this.input = InputManager.instance; //input manager already initialized in main.ts
+    this.input = InputManager.instance;
   }
 
   setState(newState: MenuState) {
@@ -121,11 +122,11 @@ export class MenuManager {
 
     else if (this.state === "minigames") {
       if (this.hIndex === 0) {
-        this.engine.goToScene("tennis");
-      } else if (this.hIndex === 1) {
         this.engine.goToScene("basketDash");
-      } else {
+      } else if (this.hIndex === 1) {
         this.engine.goToScene("roleRush");
+      } else {
+        this.engine.goToScene("tennis");
       }
     }
 
@@ -135,11 +136,11 @@ export class MenuManager {
   private handleBack() {
     if (this.state === "slotDetails") {
       this.state = "adventure";
-    } else if (this.state === "adventure" || this.state === "minigames") {
+      Resources.Select1Sfx.play(0.6);
+    } else if (this.state === "adventure") { // || this.state === "minigames"
       this.state = "main";
+      Resources.Select1Sfx.play(0.6);
     }
-
-    Resources.Select1Sfx.play(0.6);
   }
 
   private getActiveMenu() {
@@ -165,109 +166,176 @@ export class MenuManager {
     // Confirm / Back
     if (input.justPressed.has("button1")) this.handleSelect();
     if (input.justPressed.has("button2") || input.justPressed.has("pause")) this.handleBack();
-    }
+
+    // Smooth cursor transition
+    const targetX = this.hIndex;
+    this.cursorX += (targetX - this.cursorX) * dt * 0.02; // easing
+  }
 
   public draw(ctx: ExcaliburGraphicsContext) {
-    const menu = this.getActiveMenu();
-    const buttonWidth = 320;
-    const buttonHeight = 120;
-    const spacing = 80;
+    if (this.state !== "minigames") return;
 
-    const totalWidth = menu.length * buttonWidth + (menu.length - 1) * spacing;
+    const images = [
+      Resources.GameBasket.toSprite(),
+      Resources.GameRole.toSprite(),
+      Resources.GameTennis.toSprite(),
+    ];
+
+    const cursorFrame = createNineSliceSprites(Resources.MenuFrameCursor.toSprite(), 256, 62);
+
+    const imageSize = 512;
+    const spacing = 180;
+    const totalWidth = images.length * imageSize + (images.length - 1) * spacing;
     const startX = this.engine.halfDrawWidth - totalWidth / 2;
-    const y = 300;
+    const y = 200;
 
-    // Draw buttons horizontally
-    menu.forEach((item, index) => {
-      const x = startX + index * (buttonWidth + spacing);
-
-      const buttonSprite = index === this.hIndex ? Buttons.red.pressed : Buttons.red.default;
-      const nine = createNineSliceSprites(buttonSprite, 16, 6);
-      drawNineSliceButton(ctx, nine, x, y, buttonWidth, buttonHeight, 6);
-
-      // Draw frame around selected item
-      if (this.state !== "slotDetails" && index === this.hIndex) {
-        const cursorSprite = CursorSheet.getSprite(0, 0);
-        //cursorSprite.scale = vec(2, 2);
-        const nineCursor = createNineSliceSprites(cursorSprite, 30, 14);
-        drawNineSliceButton(ctx, nineCursor, x - 8, y - 8, buttonWidth + 16, buttonHeight + 16, 14);
-      }
-
-      const text = new Text({
-        text: item.label,
-        color: Color.White,
-        font: new Font({
-          family: "ThaleahFat",
-          size: 46,
-          bold: true,
-          textAlign: TextAlign.Center,
-          baseAlign: BaseAlign.Middle
-        })
-      });
-
-      text.draw(ctx, x + buttonWidth / 2, y + buttonHeight / 2);
+    // Draw minigame images + frame
+    images.forEach((sprite, index) => {
+      const x = startX + index * (imageSize + spacing);
+      sprite.draw(ctx, x, y); // imageSize, imageSize
+      const frame = createNineSliceSprites(Resources.MenuFrame.toSprite(), 256, 62);
+      drawNineSliceButton(ctx, frame, x, y, imageSize, imageSize, 62);
     });
 
-    // Always show slot details area below slots
-    if (this.state === "adventure" || this.state === "slotDetails") {
-      const slot = this.memorySlots[this.hIndex];
-      const baseY = y + buttonHeight + 60;
+    // === Cursor ===
+    const cursorScale = 1 + 0.008 * Math.sin(this.elapsed / 200);
+    const cursorIndexX = startX + this.cursorX * (imageSize + spacing);
+    const cursorY = y;
+    // Calculate center of the cursor area
+    const centerX = cursorIndexX + imageSize / 2;
+    const centerY = cursorY + imageSize / 2;
 
-      if (slot.saved) {
-        const options = ["Continue"];
-        for (let i = 1; i <= slot.reachedLevels; i++) {
-          options.push(`Level ${i}`);
-        }
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.scale(cursorScale, cursorScale);
+    ctx.translate(-centerX, -centerY);
+    drawNineSliceButton(ctx, cursorFrame, cursorIndexX, cursorY, imageSize, imageSize, 62);
+    ctx.restore();
 
-        options.forEach((label, idx) => {
-          const optColor =
-            this.state === "slotDetails" && idx === this.detailIndex
-              ? Color.Yellow
-              : Color.White;
+    // === High score text ===
+    const highest = PersistentGameStateManager.getHighScore(
+      this.hIndex === 0
+        ? "basketDashHighScore"
+        : this.hIndex === 1
+        ? "roleRushHighScore"
+        : "tennisHighScore"
+    ) || 0;
 
-          const text = new Text({
-            text: label,
-            color: optColor,
-            font: new Font({
-              family: "ThaleahFat",
-              size: 36,
-              bold: true,
-              textAlign: TextAlign.Center,
-              baseAlign: BaseAlign.Middle
-            })
-          });
-          text.draw(ctx, this.engine.halfDrawWidth, baseY + idx * 60);
-        });
-      } else {
-        const alpha = 0.5 + 0.5 * Math.sin(this.elapsed / 400);
-        const msg = new Text({
-          text: "Select to start new game...",
-          color: new Color(255, 255, 255, alpha),
-          font: new Font({
-            family: "ThaleahFat",
-            size: 48,
-            textAlign: TextAlign.Center,
-            baseAlign: BaseAlign.Middle
-          })
-        });
-        msg.draw(ctx, this.engine.halfDrawWidth, baseY);
-      }
-    }
+    const msg = new Text({
+      text: "High score: " + highest,
+      color: Color.White,
+      font: new Font({
+        family: "ThaleahFat",
+        size: 64,
+        textAlign: TextAlign.Center,
+        baseAlign: BaseAlign.Middle
+      })
+    });
 
-    if (this.state === "minigames") {
-      const baseY = y + buttonHeight + 60;
-      const highest = PersistentGameStateManager.getHighScore(this.hIndex === 0 ? "tennisHighScore" : (this.hIndex === 1 ? "basketDashHighScore" : "roleRushHighScore"));
-      const msg = new Text({
-        text: "Highest score: " + highest,
-        color: Color.White,
-        font: new Font({
-          family: "ThaleahFat",
-          size: 48,
-          textAlign: TextAlign.Center,
-          baseAlign: BaseAlign.Middle
-        })
-      });
-      msg.draw(ctx, this.engine.halfDrawWidth, baseY);
-    }
+    msg.draw(ctx, this.engine.halfDrawWidth, y + imageSize + 100);
   }
+
+  // public draw(ctx: ExcaliburGraphicsContext) {
+  //   const menu = this.getActiveMenu();
+  //   const buttonWidth = 320;
+  //   const buttonHeight = 120;
+  //   const spacing = 80;
+
+  //   const totalWidth = menu.length * buttonWidth + (menu.length - 1) * spacing;
+  //   const startX = this.engine.halfDrawWidth - totalWidth / 2;
+  //   const y = 300;
+
+  //   // Draw buttons horizontally
+  //   menu.forEach((item, index) => {
+  //     const x = startX + index * (buttonWidth + spacing);
+
+  //     const buttonSprite = index === this.hIndex ? Buttons.red.pressed : Buttons.red.default;
+  //     const nine = createNineSliceSprites(buttonSprite, 16, 6);
+  //     drawNineSliceButton(ctx, nine, x, y, buttonWidth, buttonHeight, 6);
+
+  //     // Draw frame around selected item
+  //     if (this.state !== "slotDetails" && index === this.hIndex) {
+  //       const cursorSprite = CursorSheet.getSprite(0, 0);
+  //       //cursorSprite.scale = vec(2, 2);
+  //       const nineCursor = createNineSliceSprites(cursorSprite, 30, 14);
+  //       drawNineSliceButton(ctx, nineCursor, x - 8, y - 8, buttonWidth + 16, buttonHeight + 16, 14);
+  //     }
+
+  //     const text = new Text({
+  //       text: item.label,
+  //       color: Color.White,
+  //       font: new Font({
+  //         family: "ThaleahFat",
+  //         size: 46,
+  //         bold: true,
+  //         textAlign: TextAlign.Center,
+  //         baseAlign: BaseAlign.Middle
+  //       })
+  //     });
+
+  //     text.draw(ctx, x + buttonWidth / 2, y + buttonHeight / 2);
+  //   });
+
+  //   // Always show slot details area below slots
+  //   if (this.state === "adventure" || this.state === "slotDetails") {
+  //     const slot = this.memorySlots[this.hIndex];
+  //     const baseY = y + buttonHeight + 60;
+
+  //     if (slot.saved) {
+  //       const options = ["Continue"];
+  //       for (let i = 1; i <= slot.reachedLevels; i++) {
+  //         options.push(`Level ${i}`);
+  //       }
+
+  //       options.forEach((label, idx) => {
+  //         const optColor =
+  //           this.state === "slotDetails" && idx === this.detailIndex
+  //             ? Color.Yellow
+  //             : Color.White;
+
+  //         const text = new Text({
+  //           text: label,
+  //           color: optColor,
+  //           font: new Font({
+  //             family: "ThaleahFat",
+  //             size: 36,
+  //             bold: true,
+  //             textAlign: TextAlign.Center,
+  //             baseAlign: BaseAlign.Middle
+  //           })
+  //         });
+  //         text.draw(ctx, this.engine.halfDrawWidth, baseY + idx * 60);
+  //       });
+  //     } else {
+  //       const alpha = 0.5 + 0.5 * Math.sin(this.elapsed / 400);
+  //       const msg = new Text({
+  //         text: "Select to start new game...",
+  //         color: new Color(255, 255, 255, alpha),
+  //         font: new Font({
+  //           family: "ThaleahFat",
+  //           size: 48,
+  //           textAlign: TextAlign.Center,
+  //           baseAlign: BaseAlign.Middle
+  //         })
+  //       });
+  //       msg.draw(ctx, this.engine.halfDrawWidth, baseY);
+  //     }
+  //   }
+
+  //   if (this.state === "minigames") {
+  //     const baseY = y + buttonHeight + 60;
+  //     const highest = PersistentGameStateManager.getHighScore(this.hIndex === 0 ? "tennisHighScore" : (this.hIndex === 1 ? "basketDashHighScore" : "roleRushHighScore"));
+  //     const msg = new Text({
+  //       text: "Highest score: " + highest,
+  //       color: Color.White,
+  //       font: new Font({
+  //         family: "ThaleahFat",
+  //         size: 48,
+  //         textAlign: TextAlign.Center,
+  //         baseAlign: BaseAlign.Middle
+  //       })
+  //     });
+  //     msg.draw(ctx, this.engine.halfDrawWidth, baseY);
+  //   }
+  // }
 }

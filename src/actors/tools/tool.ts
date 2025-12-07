@@ -13,6 +13,10 @@ export abstract class Tool extends Actor {
     player.addChild(this); // attach to player
   }
 
+  public getPlayer(): Player {
+    return this.player;
+  }
+
   /** Called when input requests an action */
   public abstract use(action: string, now?: number): void;
 }

@@ -14,8 +14,8 @@ export class MenuScene extends BaseScene {
   onInitialize(engine: Engine) {
     // Create menu manager
     this.menuManager = new MenuManager(engine);
-    // Load initial menu state
-    this.menuManager.setState("main");
+    // Load initial menu state (changed to minigames)
+    this.menuManager.setState("minigames");
 
     Resources.MenuMusic.loop = true;
     Resources.MenuMusic.volume = 0.2;
@@ -23,8 +23,8 @@ export class MenuScene extends BaseScene {
 
   onActivate() {
     SoundManager.instance.play(Resources.MenuMusic, 0.3);
-    // Reset state when entering the menu scene
-    this.menuManager.setState("main");
+    // Reset state when entering the menu scene (changed to minigames)
+    this.menuManager.setState("minigames");
   }
 
   onDeactivate() {

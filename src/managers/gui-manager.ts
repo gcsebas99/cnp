@@ -8,10 +8,12 @@ export class GuiManager {
   private timerLabelElement!: ScreenElement;
   private scoreElement!: ScreenElement;
   private scoreLabelElement!: ScreenElement;
-
-  // private remainingTime = 0; // ms
-  // private score = 0;
   private elementsCreated:boolean = false;
+
+  private timeLabelColor: Color = Color.Violet;
+  private timeValueColor: Color = Color.Red;
+  private scoreLabelColor: Color = Color.Violet;
+  private scoreValueColor: Color = Color.Red;
 
   private constructor(engine: Engine) {
     this.engine = engine;
@@ -46,7 +48,7 @@ export class GuiManager {
     });
     this.timerLabelElement.graphics.use(new Text({
       text: "Tiempo",
-      color: Color.Violet,
+      color: this.timeLabelColor,
       font: new Font({
         family: "PolygonParty",
         size: 50,
@@ -64,7 +66,7 @@ export class GuiManager {
     });
     this.timerElement.graphics.use(new Text({
       text: "00:00",
-      color: Color.Red,
+      color: this.timeValueColor,
       font: new Font({
         family: "PolygonParty",
         size: 80,
@@ -83,7 +85,7 @@ export class GuiManager {
     });
     this.scoreLabelElement.graphics.use(new Text({
       text: "Puntos",
-      color: Color.Violet,
+      color: this.scoreLabelColor,
       font: new Font({
         family: "PolygonParty",
         size: 50,
@@ -101,7 +103,7 @@ export class GuiManager {
     });
     this.scoreElement.graphics.use(new Text({
       text: "00",
-      color: Color.Red,
+      color: this.scoreValueColor,
       font: new Font({
         family: "PolygonParty",
         size: 80,
@@ -120,7 +122,11 @@ export class GuiManager {
   }
 
   /** Show GUI */
-  public show() {
+  public show(timeLabelColor?: Color, timeValueColor?: Color, scoreLabelColor?: Color, scoreValueColor?: Color) {
+    if (timeLabelColor) this.timeLabelColor = timeLabelColor;
+    if (timeValueColor) this.timeValueColor = timeValueColor;
+    if (scoreLabelColor) this.scoreLabelColor = scoreLabelColor;
+    if (scoreValueColor) this.scoreValueColor = scoreValueColor;
     if (!this.elementsCreated) {
       this.createElements();
       this.elementsCreated = true;

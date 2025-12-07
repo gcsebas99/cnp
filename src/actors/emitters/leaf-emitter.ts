@@ -3,12 +3,12 @@ import { BasketDashTreeLeaves } from "@/sprite-sheets/basket-dash-tree-leaves";
 
 export class LeafEmitter extends ParticleEmitter {
 
-  constructor(pos: Vector) {
+  constructor(pos: Vector, emitRate = 1) {
     super({
       pos,
       width: 10,
       height: 10,
-      emitRate: 1,     // 1 leaf per second
+      emitRate: emitRate,
       isEmitting: true,
       particle: {
         rotation: 5,

@@ -2,9 +2,11 @@ import { InputManager } from "@/managers/input-manager";
 import { PauseManager } from "@/managers/pause-manager";
 import { Color, Engine, FadeInOut } from "excalibur";
 import { BaseScene } from "@/core/base-scene";
+import { ScoreManager } from "@/managers/score-manager";
 
 export abstract class GameScene extends BaseScene {
   protected canBePaused: boolean = true;
+  public scoreManager?: ScoreManager;
   //public registeredSceneKey: string = "";
   public isPaused: boolean = false;
 

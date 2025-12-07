@@ -16,7 +16,20 @@ const TennisCollisionGroups = {
   Ball: TennisBall,
 };
 
+const BasketDashPlayer = CollisionGroupManager.create("b-player");
+const BasketDashBasket = CollisionGroupManager.create("basket");
+const BasketDashBasketItem = CollisionGroup.collidesWith([BasketDashBasket]);
+const BasketDashBasketOrPlayerItem = CollisionGroup.collidesWith([BasketDashBasket, BasketDashPlayer]);
+
+const BasketDashCollisionGroups = {
+  Player: BasketDashPlayer,
+  Basket: BasketDashBasket,
+  BasketItem: BasketDashBasketItem,
+  BasketOrPlayerItem: BasketDashBasketOrPlayerItem,
+};
+
 
 export {
   TennisCollisionGroups,
+  BasketDashCollisionGroups,
 };
