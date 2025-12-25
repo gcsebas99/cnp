@@ -1,6 +1,6 @@
 import { Actor, Engine, GraphicsGroup, Sprite, vec, Vector } from "excalibur";
 
-type Direction =
+export type Direction =
   | "left"
   | "right"
   | "up"

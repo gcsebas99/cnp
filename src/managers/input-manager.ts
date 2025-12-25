@@ -23,8 +23,13 @@ interface ManagedGamepad {
 }
 
 export class InputManager {
-  private static _instance: InputManager;
+  private static _instance: InputManager | undefined = undefined;
   private engine: Engine;
+
+  public static dispose() {
+    InputManager._instance = undefined;
+    // Remove any static listeners or references
+  }
 
   private gamepads: ManagedGamepad[] = [];
 

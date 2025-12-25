@@ -4,8 +4,8 @@ import { Tool } from "@/actors/tools/tool";
 import { Player } from "@/actors/player/player";
 import { Basket as BasketSprite } from "@/sprite-sheets/basket";
 
-const BASKET_RIGHT_OFFSET = new Vector(74, 64);
-const BASKET_LEFT_OFFSET  = new Vector(0, 64);
+const BASKET_RIGHT_OFFSET = new Vector(62, 64);
+const BASKET_LEFT_OFFSET  = new Vector(12, 64);
 const BASKET_WIDTH = 96;
 const BASKET_HEIGHT = 86;
 

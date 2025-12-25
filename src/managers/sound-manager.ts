@@ -1,8 +1,13 @@
 import { Sound } from "excalibur";
 
 export class SoundManager {
-  private static _instance: SoundManager;
+  private static _instance: SoundManager | undefined = undefined;
   private activeSounds: Sound[] = [];
+
+  public static dispose() {
+    SoundManager._instance = undefined;
+    // Optionally stop all sounds
+  }
 
   public static get instance() {
     if (!this._instance) this._instance = new SoundManager();

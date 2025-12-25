@@ -4,7 +4,7 @@ import { SceneManager } from "@/managers/scene-manager";
 import { GameScene } from "@/core/game-scene";
 
 export class EndGameManager {
-  private static _instance: EndGameManager;
+  private static _instance: EndGameManager | undefined = undefined;
   private engine!: Engine;
   private _endedScene?: Scene;
   private endedSceneKey: string = "";
@@ -12,6 +12,11 @@ export class EndGameManager {
   private endGameMusic: string = "";
   private score: number = 0;
   private bestScore: number = 0;
+
+  public static dispose() {
+    EndGameManager._instance = undefined;
+    // Clear any other static properties or listeners here
+  }
 
   private constructor(engine: Engine) {
     this.engine = engine;

@@ -1,7 +1,18 @@
-import { Actor, Color, CollisionType, Engine, Vector, clamp, vec } from "excalibur";
+import { Actor, CollisionType, Engine, Vector, clamp, vec, Animation, AnimationStrategy } from "excalibur";
 import { Ball } from "@/actors/objects/ball";
+import { AnimationComponent } from "@/core/components/animation-component";
+import { TennisOpponentIndex, TennisOpponentSheet } from "@/sprite-sheets/tennis-opponent";
+
+type OpponentAnimationKey = "idle" | "run" | "swing";
+
+const animations = {
+    idle: Animation.fromSpriteSheet(TennisOpponentSheet, TennisOpponentIndex.idle, 200, AnimationStrategy.Loop),
+    run: Animation.fromSpriteSheet(TennisOpponentSheet, TennisOpponentIndex.run, 85, AnimationStrategy.Loop),
+    swing: Animation.fromSpriteSheet(TennisOpponentSheet, TennisOpponentIndex.swing, 125, AnimationStrategy.End),
+  }
 
 export class TennisOpponent extends Actor {
+  public animation: AnimationComponent<OpponentAnimationKey>;
   private targetBall: Ball | null = null;
 
   // --- Behavior tuning (these can later vary by difficulty)
@@ -33,22 +44,28 @@ export class TennisOpponent extends Actor {
   public get winnerHoldThresholdMs() { return this.winnerHoldThreshold; }
   public get winnerChanceValue() { return this.winnerChance; }
 
+  private swingLocked = false;
+
   constructor(startPos: Vector, centerPos: Vector) {
     super({
       name: "Opponent",
       pos: startPos.clone(),
       width: 40,
       height: 80,
-      color: Color.Red,
       collisionType: CollisionType.Passive,
       anchor: Vector.Zero,
     });
+
+    this.animation = new AnimationComponent(animations);
 
     this.centerPos = centerPos.clone();
     this.addTag("npc");
   }
 
   onInitialize(engine: Engine) {
+    this.addComponent(this.animation);
+    this.setAnimation("idle");
+
     // Listen for when ball starts moving toward opponent
     this.scene?.on("ball:trajectory", (evt: any) => {
       if (evt.by === "player") {
@@ -84,6 +101,8 @@ export class TennisOpponent extends Actor {
 
     // --- Predictive tracking
     if (this.targetBall) {
+      this.graphics.flipHorizontal = this.targetBall.pos.x < this.pos.x;
+
       const ball = this.targetBall;
 
       // Simulate reaction delay
@@ -140,6 +159,13 @@ export class TennisOpponent extends Actor {
       if (ball.pos.y <= this.hitZoneY && this.readyToHit) {
         this.readyToHit = false;
 
+        this.setAnimation("swing");
+        this.swingLocked = true;
+        this.animation.current?.events.once("end", () => {
+          this.setAnimation("idle");
+          this.swingLocked = false;
+        });
+
         // Check horizontal reach
         const ballCenterX = ball.pos.x;
         const bodyReach = (ballCenterX < this.pos.x) ? this.width : this.width * 2;
@@ -162,8 +188,6 @@ export class TennisOpponent extends Actor {
           console.log(`🏆 Opponent boosted win chance to ${this.winChance} (held ${this.timeInPosition.toFixed(0)}ms near intercept)`);
         }
 
-
-
         const rand = Math.random();
         const willHit = rand < this.winChance;
         console.log(`OWC: ${this.winChance}, R: ${rand} => ${willHit}`);
@@ -173,9 +197,18 @@ export class TennisOpponent extends Actor {
         }
       }
 
-
     } else {
       this.returnToCenter(dt);
+    }
+
+    // --- Animation state ---
+    if (this.swingLocked) return;
+
+    const moving = Math.abs(this.vel.x) > 5 || Math.abs(this.pos.x - (this.predictedX ?? this.centerPos.x)) > 10;
+    if (moving) {
+      this.setAnimation("run");
+    } else {
+      this.setAnimation("idle");
     }
   }
 
@@ -228,5 +261,18 @@ export class TennisOpponent extends Actor {
       default:
         return null;
     }
+  }
+
+  private setAnimation(key: OpponentAnimationKey) {
+    this.animation.set(key);
+  }
+
+  public animateServe() {
+    this.animation.set("swing");
+    this.swingLocked = true;
+    this.animation.current?.events.once("end", () => {
+      this.setAnimation("idle");
+      this.swingLocked = false;
+    });
   }
 }

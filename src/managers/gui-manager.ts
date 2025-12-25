@@ -1,8 +1,13 @@
 import { Engine, ScreenElement, Vector, Text, Color, Font, TextAlign, BaseAlign, GraphicsComponent, vec } from "excalibur";
 
 export class GuiManager {
-  private static _instance: GuiManager;
+  private static _instance: GuiManager | undefined = undefined;
   private engine!: Engine;
+
+  public static dispose() {
+    GuiManager._instance = undefined;
+    // Remove any static listeners or references
+  }
 
   private timerElement!: ScreenElement;
   private timerLabelElement!: ScreenElement;
@@ -47,7 +52,7 @@ export class GuiManager {
       z: 2000
     });
     this.timerLabelElement.graphics.use(new Text({
-      text: "Tiempo",
+      text: "Time",
       color: this.timeLabelColor,
       font: new Font({
         family: "PolygonParty",
@@ -84,7 +89,7 @@ export class GuiManager {
       z: 2000
     });
     this.scoreLabelElement.graphics.use(new Text({
-      text: "Puntos",
+      text: "Score",
       color: this.scoreLabelColor,
       font: new Font({
         family: "PolygonParty",

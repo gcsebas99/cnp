@@ -1,10 +1,9 @@
-import { Color, Engine, vec, Vector } from "excalibur";
+import { Color, Engine, Timer, vec, Vector } from "excalibur";
 import { LdtkResource } from "@excaliburjs/plugin-ldtk";
 import { BaseLdtkScene } from "@/core/base-ldtk-scene";
-import { Resources } from "@/resources";
 import { JTPlatform } from "@/actors/objects/jt-platform";
 import { RoleRushTerrainGrid } from "@/sprite-sheets/role-rush-terrain";
-import { MovingBackground } from "@/actors/objects/moving-background";
+import { Direction, MovingBackground } from "@/actors/objects/moving-background";
 import { Resources as RoleRushResources } from "@/resources/role-rush-resources";
 import { Player } from "@/actors/player/player";
 import { RoleRushController } from "@/controllers/role-rush-controller";
@@ -27,16 +26,43 @@ import { GuiManager } from "@/managers/gui-manager";
 import { animStartSprite } from "@/sprite-sheets/start";
 import { GameState } from "@/types/game-state";
 import { RoleRushOrchestration } from "@/scenes/role-rush/role-rush-orchestration";
+import { PersistentGameStateManager } from "@/managers/persistent-game-state-manager";
+import { InputManager } from "@/managers/input-manager";
+import { PlayerPuffVFX } from "@/actors/vfx/player-puff-vfx";
 
-const GAME_TIME_MS = 60 * 1000; // 1 minute
+const ROLE_RUSH_BACKGROUNDS = [
+  RoleRushResources.BgBlue,
+  RoleRushResources.BgBrown,
+  RoleRushResources.BgGray,
+  RoleRushResources.BgGreen,
+  RoleRushResources.BgPink,
+  RoleRushResources.BgPurple,
+  RoleRushResources.BgYellow,
+];
+
+const ROLE_RUSH_DIRECTIONS: Direction[] = [
+  "left",
+  "right",
+  "up",
+  "down",
+  "diagonal-to-topleft",
+  "diagonal-to-topright",
+  "diagonal-to-bottomleft",
+  "diagonal-to-bottomright",
+];
+
+const GAME_TIME_MS = 90 * 1000; // 1.5 minutes
 
 export class RoleRushScene extends BaseLdtkScene {
   private orchestration!: RoleRushOrchestration;
-  private background?: MovingBackground;
   private door?: RoleRushDoor;
   private elevator?: PlatformWithFan;
   private roleSpawn?: Vector[] = [];
   private roleTaskManager?: RoleTaskManager;
+  private roleTriggers: RoleTrigger[] = [];
+
+  private background?: MovingBackground;
+  private backgroundTimer?: Timer;
 
   //player
   private player?: Player;
@@ -60,9 +86,10 @@ export class RoleRushScene extends BaseLdtkScene {
     });
 
     ldtk.registerEntityIdentifierFactory("PlayerSpawn", (props) => {
-      this.player = new Player("chuti", props.worldPos.x, props.worldPos.y, vec(props.entity.__pivot[0],props.entity.__pivot[1]));
+      const playerId = PersistentGameStateManager.getSelectedPlayer() || "chuti";
+      this.player = new Player(playerId, props.worldPos.x, props.worldPos.y, vec(props.entity.__pivot[0],props.entity.__pivot[1]));
       this.player.controller = new RoleRushController();
-      return this.player;
+      return undefined;
     });
 
     ldtk.registerEntityIdentifierFactory("RoleSpawnMarker", (props) => {
@@ -74,18 +101,11 @@ export class RoleRushScene extends BaseLdtkScene {
 
   override onInitialize(engine: Engine) {
     super.onInitialize(engine);
+
     this.scoreManager = new ScoreManager(engine, 0, GAME_TIME_MS);
     this.registerScore();
 
-    this.background = new MovingBackground({
-      width: engine.drawWidth,
-      height: engine.drawHeight,
-      sprite: RoleRushResources.BgBlue.toSprite(),
-      spriteSize: 64,
-      direction: "down",
-      speed: 0.05,
-    });
-    this.add(this.background);
+    this.startBackgroundCycle(engine);
 
     //add a door
     this.door = new RoleRushDoor(1088, 696);
@@ -95,57 +115,74 @@ export class RoleRushScene extends BaseLdtkScene {
     this.elevator = new PlatformWithFan(1856, 1150, 1856, 320);
     this.add(this.elevator);
 
-
-    //this is just for bg testing
-    setTimeout(() => {
-      if(this.background) {
-        this.background.actions.fade(0, 500).callMethod(() => {
-          if(this.background) {
-            this.background.kill();
-            this.background = undefined;
-          }
-        });
-        //add a new background with different settings
-        const background2 = new MovingBackground({
-          width: engine.drawWidth,
-          height: engine.drawHeight,
-          sprite: RoleRushResources.BgBrown.toSprite(),
-          spriteSize: 64,
-          direction: "up",
-          speed: 0.1,
-          z: -4
-        });
-        this.add(background2);
-      }
-    }, 3000);
-
-
-    // move to game orchestration
-    //GuiManager.instance.show();
-    //GuiManager.instance.setTimer(3 * 60 * 1000);
-
-    Resources.MenuMusic.loop = true;
-    Resources.MenuMusic.volume = 0.15;
-
     this.initRoleTaskManager();
 
-    this.orchestration = new RoleRushOrchestration(engine, this);
-    this.orchestration.devStart();
+    this.orchestration = new RoleRushOrchestration(engine, this, this.player!);
+    this.orchestration.start();
   }
 
   onActivate() {
     super.onActivate();
-    SoundManager.instance.playOnce(Resources.MenuMusic, 0.8);
   }
 
   onDeactivate() {
-    Resources.MenuMusic.stop();
+    SoundManager.instance.stopAll();
+
+    this.backgroundTimer?.cancel();
+    this.backgroundTimer = undefined;
+
+    if (this.background) {
+      this.background.kill();
+      this.background = undefined;
+    }
+  }
+
+  private startBackgroundCycle(engine: Engine) {
+    // spawn initial background immediately
+    this.spawnRandomBackground(engine);
+
+    this.backgroundTimer = new Timer({
+      interval: 15000,
+      repeats: true,
+      fcn: () => this.spawnRandomBackground(engine),
+    });
+
+    this.addTimer(this.backgroundTimer);
+    this.backgroundTimer.start();
+  }
+
+  private spawnRandomBackground(engine: Engine) {
+    const bgResource = ROLE_RUSH_BACKGROUNDS[Math.floor(Math.random() * ROLE_RUSH_BACKGROUNDS.length)];
+
+    const direction = ROLE_RUSH_DIRECTIONS[Math.floor(Math.random() * ROLE_RUSH_DIRECTIONS.length)];
+
+    const newBg = new MovingBackground({
+      width: engine.drawWidth,
+      height: engine.drawHeight,
+      sprite: bgResource.toSprite(),
+      spriteSize: 64,
+      direction,
+      speed: 0.05 + Math.random() * 0.05, // subtle variation
+      z: -5,
+    });
+
+    // Fade out old background
+    if (this.background) {
+      const oldBg = this.background;
+      oldBg.actions.fade(0, 600).callMethod(() => oldBg.kill());
+    }
+
+    newBg.graphics.opacity = 0;
+    this.add(newBg);
+    newBg.actions.fade(1, 600);
+
+    this.background = newBg;
   }
 
   private initRoleTaskManager() {
     this.roleTaskManager = new RoleTaskManager(this, {
       availableSpots: this.roleSpawn ?? [],
-      tasks: ["doctor", "chef", "musician", "soccer", "mario", "santa"],
+      tasks: ["santa", "doctor", "chef", "musician", "soccer", "mario"],
       // minSpawnTime: 4,
       // maxSpawnTime: 7,
       onTriggerSpawn: (task: RoleName, pos: Vector) => {
@@ -157,16 +194,25 @@ export class RoleRushScene extends BaseLdtkScene {
         this.spawnRoleTarget(task, pos);
       }
     });
-    // this.ballManager.registerAreas({
-    //   pointWonActors: this.pointWonActors,
-    //   pointLostActors: this.pointLostActors,
-    //   playerBouncePoints: this.bouncePlayerPoints,
-    //   playerWinnerBouncePoints: this.winnerBouncePlayerPoints,
-    //   opponentBouncePoints: this.bounceOpponentPoints,
-    //   opponentWinnerBouncePoints: this.winnerBounceOpponentPoints,
-    //   playerService: this.playerServiceMarkers,
-    //   opponentService: this.opponentServiceMarkers,
-    // });
+    this.roleTriggers = [];
+
+    this.on("task:locked", (event: unknown) => {
+      const evt = event as { activeTask: RoleName };
+      //remove from roleTriggers where t.taskName === evt.activeTask
+      this.roleTriggers = this.roleTriggers.filter(t => t.taskName !== evt.activeTask);
+
+      console.log("||--LOCKING triggers", this.roleTriggers.map(t => t.taskName));
+      this.roleTriggers.forEach(t => t.setDisabled(true));
+    });
+
+    this.on("task:unlocked", () => {
+      console.log("||--UNlocking triggers", this.roleTriggers.map(t => t.taskName));
+      this.roleTriggers.forEach(t => t.setDisabled(false));
+    });
+
+    this.on("player:remove-hat", () => {
+      this.player?.removeHat();
+    });
   }
 
   private spawnRoleTrigger(task: RoleName, pos: Vector) {
@@ -202,6 +248,8 @@ export class RoleRushScene extends BaseLdtkScene {
     }
     if (!defaultSprite || !outlineSprite) return;
     const roleTrigger = new RoleTrigger(task, defaultSprite, outlineSprite, pos.x, pos.y);
+    roleTrigger.setDisabled(this.roleTaskManager?.hasActiveTask() ?? false);
+    this.roleTriggers.push(roleTrigger);
     this.add(roleTrigger);
   }
 
@@ -245,56 +293,6 @@ export class RoleRushScene extends BaseLdtkScene {
     this.add(roleTarget);
   }
 
-  // private addRoleTask() {
-  //   // const targetYAdjustment = {
-  //   //   Patient: 0,
-  //   //   ToadAndToadette: 0,
-  //   //   ChristmasTree: -16,
-  //   //   Piano: -8,
-  //   //   SoccerGoal: 16,
-  //   //   Stove: 16,
-  //   // };
-
-  //   // const pos11 = this.roleSpawn?.[10];
-
-  //   // const roleTrigger1 = new RoleTrigger(InjectionSprite.default, InjectionSprite.highlight, 1280, 1088);
-  //   // this.add(roleTrigger1);
-
-  //   // const roleTrigger2 = new RoleTrigger(BenchSprite.default, BenchSprite.highlight, 1408, 1088);
-  //   // this.add(roleTrigger2);
-
-  //   // const roleTrigger3 = new RoleTrigger(GiftSprite.default, GiftSprite.highlight, 1536, 1088);
-  //   // this.add(roleTrigger3);
-
-  //   // const roleTrigger4 = new RoleTrigger(SoccerBallSprite.default, SoccerBallSprite.highlight, 1664, 1088);
-  //   // this.add(roleTrigger4);
-
-  //   // const roleTrigger5 = new RoleTrigger(SpoonSprite.default, SpoonSprite.highlight, 1792, 1088);
-  //   // this.add(roleTrigger5);
-
-  //   // const roleTrigger6 = new RoleTrigger(StarSprite.default, StarSprite.highlight, 1920, 1088);
-  //   // this.add(roleTrigger6);
-
-
-  //   // const roleTarget1 = new RoleTarget(RoleRushResources.PatientTarget.toSprite(), 256, 1072, targetYAdjustment.Patient);
-  //   // this.add(roleTarget1);
-
-  //   // const roleTarget2 = new RoleTarget(RoleRushResources.ToadAndToadetteTarget.toSprite(), 512, 1072, targetYAdjustment.ToadAndToadette, 0.9);
-  //   // this.add(roleTarget2);
-
-  //   // const roleTarget3 = new RoleTarget(RoleRushResources.ChristmasTreeTarget.toSprite(), 768, 1072, targetYAdjustment.ChristmasTree, 1.2);
-  //   // this.add(roleTarget3);
-
-  //   // const roleTarget4 = new RoleTarget(RoleRushResources.PianoTarget.toSprite(), pos11?.x ?? 128, pos11?.y ?? 880, targetYAdjustment.Piano, 0.9);
-  //   // this.add(roleTarget4);
-
-  //   // const roleTarget5 = new RoleTarget(RoleRushResources.SoccerGoalTarget.toSprite(), 320, 880, targetYAdjustment.SoccerGoal, 0.7);
-  //   // this.add(roleTarget5);
-
-  //   // const roleTarget6 = new RoleTarget(RoleRushResources.StoveTarget.toSprite(), 576, 880, targetYAdjustment.Stove, 0.8);
-  //   // this.add(roleTarget6);
-  // }
-
   override onPreUpdate(engine: Engine, delta: number) {
     super.onPreUpdate(engine, delta);
     this.orchestration.update(delta);
@@ -313,6 +311,7 @@ export class RoleRushScene extends BaseLdtkScene {
     this.on("task:completed", (evt:any) => {
       if (evt.points) {
         this.scoreManager?.add(evt.points);
+        GuiManager.instance.updateScore(this.scoreManager!.getScore(), true);
       }
     });
   }
@@ -321,7 +320,7 @@ export class RoleRushScene extends BaseLdtkScene {
     PopupManager.instance.show({
       text: "Start!",
       duration: 1500,
-      soundAppear: Resources.ReadyStartSfx,
+      soundAppear: RoleRushResources.StartSfx,
       sprite: animStartSprite,
       animationDelay: 800,
       soundAppearDelay: 500,
@@ -336,19 +335,20 @@ export class RoleRushScene extends BaseLdtkScene {
   }
 
   public addPlayerToScene() {
-    // if (!this.player) return;
-    // const puff = new PlayerPuffVFX(this.player.pos, () => {
-    //   if (!this.player) return;
-    //   this.add(this.player);
-    // });
+    if (!this.player) return;
+    const puff = new PlayerPuffVFX(this.player.pos, () => {
+      if (!this.player) return;
+      this.player.setFacing(false);
+      this.add(this.player);
+    });
 
-    // this.add(puff);
+    this.add(puff);
   }
 
   public startGame() {
     this.state = GameState.Running;
     this.roleTaskManager?.start();
-    //this.ballManager?.startFirstServe();
+    InputManager.instance.enable();
   }
 
   public endGame() {

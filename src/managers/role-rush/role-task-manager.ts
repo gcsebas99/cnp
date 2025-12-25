@@ -1,4 +1,8 @@
+import { Player } from "@/actors/player/player";
+import { Hats } from "@/actors/wearables/hats-factory";
 import { Scene, Timer, Vector } from "excalibur";
+import { SoundManager } from "@/managers/sound-manager";
+import { Resources as RoleRushResources } from "@/resources/role-rush-resources";
 
 export type RoleName =
   | "doctor"
@@ -36,9 +40,6 @@ export class RoleTaskManager {
 
   private taskSpots: TaskSpot[] = [];
 
-  // private availableSpots: Vector[] = [];
-  // private inUseSpots: Vector[] = [];
-
   private availableTasks: TaskChance[] = [];
   private activeTasks: RoleName[] = [];
 
@@ -48,6 +49,10 @@ export class RoleTaskManager {
   private running = false;
 
   private options: RoleTaskManagerOptions;
+
+  private currentTask: RoleName | null = null;
+  private taskStartTime: number = 0;
+
 
   constructor(scene: Scene, options: RoleTaskManagerOptions) {
     this.scene = scene;
@@ -72,9 +77,30 @@ export class RoleTaskManager {
     }));
 
     this.scene.on("trigger:touched", (evt: any) => {
-      console.log("trigger:touched EVENT 1");
       const task = evt.task;
+      const player = evt.player as Player;
       this.notifyTriggerTouched(task);
+
+      switch (task) {
+        case "chef":
+          player.equipHat(Hats.Chef());
+          break;
+        case "doctor":
+          player.equipHat(Hats.Doctor());
+          break;
+        case "musician":
+          player.equipHat(Hats.Mozart());
+          break;
+        case "mario":
+          player.equipHat(Hats.Mario());
+          break;
+        case "santa":
+          player.equipHat(Hats.Santa());
+          break;
+        case "soccer":
+          player.equipHat(Hats.Soccer());
+          break;
+      }
     });
 
     this.scene.on("target:touched", (evt: any) => {
@@ -109,16 +135,55 @@ export class RoleTaskManager {
    * - task is returned to availableTasks with 5% base chance
    */
   resolveTask(taskName: RoleName) {
-    this.releaseSpot(`target-${taskName}`);
+    if (this.currentTask !== taskName) return;
 
+    this.releaseSpot(`target-${taskName}`);
     this.activeTasks = this.activeTasks.filter((t) => t !== taskName);
 
-    const equalChance = 1 / this.options.tasks.length;
+    // ---- SCORE CALCULATION ----
+    const elapsed = (performance.now() - this.taskStartTime) / 1000;
+    let points = 1;
+    if (elapsed < 2) points = 4;
+    else if (elapsed < 3) points = 3;
+    else if (elapsed < 5) points = 2;
 
-    this.availableTasks.push({
-      name: taskName,
-      chance: equalChance * 0.05, // 5% of normal chance
-    });
+    this.scene.emit("task:completed", { task: taskName, elapsed, points });
+    this.scene.emit("player:remove-hat");
+
+    this.playTargetSfx(taskName);
+
+    // ---- RESTORE SYSTEM ----
+    this.currentTask = null;
+    this.taskStartTime = 0;
+
+    this.scene.emit("task:unlocked");
+
+    // Return task with lowered chance
+    const equalChance = 1 / this.options.tasks.length;
+    this.availableTasks.push({ name: taskName, chance: equalChance * 0.05 });
+  }
+
+  playTargetSfx(taskName: RoleName) {
+    switch (taskName) {
+      case "chef":
+        SoundManager.instance.playOnce(RoleRushResources.TargetChefSfx, 0.8);
+        break;
+      case "doctor":
+        SoundManager.instance.playOnce(RoleRushResources.TargetDoctorSfx, 0.8);
+        break;
+      case "musician":
+        SoundManager.instance.playOnce(RoleRushResources.TargetMusicianSfx, 0.8);
+        break;
+      case "mario":
+        SoundManager.instance.playOnce(RoleRushResources.TargetMarioSfx, 0.8);
+        break;
+      case "santa":
+        SoundManager.instance.playOnce(RoleRushResources.TargetSantaSfx, 0.8);
+        break;
+      case "soccer":
+        SoundManager.instance.playOnce(RoleRushResources.TargetSoccerSfx, 0.8);
+        break;
+    }
   }
 
   /**
@@ -127,8 +192,19 @@ export class RoleTaskManager {
    * - spawn target
    */
   notifyTriggerTouched(task: RoleName) {
-    this.releaseSpot(`trigger-${task}`);
+    // already doing a task → ignore
+    if (this.currentTask) return;
+
+    this.currentTask = task;
+    this.taskStartTime = performance.now();
+
+    // Make other triggers inactive
+    this.scene.emit("task:locked", { activeTask: task });
+
     this.spawnTargetFor(task);
+    this.scene.engine.clock.schedule(() => {
+      this.releaseSpot(`trigger-${task}`);
+    }, 150);
   }
 
   // ---------------------------
@@ -266,5 +342,9 @@ export class RoleTaskManager {
 
   private getAvailableSpots(): TaskSpot[] {
     return this.taskSpots.filter((s) => !s.taken);
+  }
+
+  public hasActiveTask(): boolean {
+    return this.currentTask !== null;
   }
 }

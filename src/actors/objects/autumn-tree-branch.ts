@@ -2,6 +2,8 @@
 import { Actor, Color, Engine, vec, Vector, RotationType, Rectangle, Graphic, Scene } from "excalibur";
 import { TreeItem, TreeItemConfig } from "@/actors/objects/tree-item";
 import { AutumnTree } from "@/actors/objects/autumn-tree";
+import { SoundManager } from "@/managers/sound-manager";
+import { Resources as BasketDashResources } from "@/resources/basket-dash-resources";
 
 export class AutumnTreeBranch extends Actor {
   private treeScene: Scene;
@@ -53,6 +55,8 @@ export class AutumnTreeBranch extends Actor {
     const shakePower = 0.2; // ~1.7 degrees
 
     this.actions.clearActions();
+
+    SoundManager.instance.playOnce(BasketDashResources.BushShake, 0.9);
 
     this.actions
       .rotateTo(shakePower, duration * 0.16, RotationType.Clockwise)

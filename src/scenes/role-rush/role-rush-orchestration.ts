@@ -1,5 +1,5 @@
 import { GameOrchestration } from "@/core/game-orchestration";
-import { Resources as TennisResources } from "@/resources/tennis-resources";
+import { Resources as RoleRushResources } from "@/resources/role-rush-resources";
 import { TimelineScheduler } from "@/core/timeline-scheduler";
 import { SoundManager } from "@/managers/sound-manager";
 import { InputManager } from "@/managers/input-manager";
@@ -13,39 +13,28 @@ export class RoleRushOrchestration extends GameOrchestration {
   async start() {
     this.isRunning = true;
 
+    InputManager.instance.disable();
+
     const events = [
-      { ms: 500, callback: () => {
-          SoundManager.instance.playOnce(TennisResources.Cheering1Sfx, 0.3);
+      { ms: 1000, callback: () => {
+          (this.scene as RoleRushScene).addPlayerToScene();
       }},
       { ms: 2000, callback: () => {
-          SoundManager.instance.playOnce(TennisResources.WelcomeChutiSfx);
+          SoundManager.instance.playOnce(RoleRushResources.IntroSfx);
       }},
-      { ms: 6500, callback: () => {
-          //(this.scene as TennisScene).addPlayerToScene();
-      }},
-      { ms: 6600, callback: () => {
-          SoundManager.instance.playOnce(TennisResources.Cheering3Sfx, 0.7);
-      }},
-      { ms: 15000, callback: () => {
-          TennisResources.Cheering3Sfx.volume = 0.4;
-      }},
-      { ms: 17000, callback: () => {
-          TennisResources.Cheering3Sfx.volume = 0.1;
-      }},
-      { ms: 18700, callback: () => {
+      { ms: 7500, callback: () => {
+          InputManager.instance.enable();
           (this.scene as RoleRushScene).showStartPromptAndGUI();
       }},
     ];
 
     this.timeline = new TimelineScheduler(events, {
-      totalMs: 21500,
-      onComplete: () => {
+      totalMs: 12000,
+      onComplete: async () => {
+        SoundManager.instance.playOnce(RoleRushResources.RoleRushMusic, 0.3);
+        await this.delay(500);
+        (this.scene as RoleRushScene).startGame();
         this.isRunning = false;
-        console.log("RR intro complete — start game!");
-        // TennisResources.HelloIntro1Sfx.volume = 0.7;
-        // TennisResources.HelloIntro1Sfx.loop = true;
-        // TennisResources.HelloIntro1Sfx.play();
-        //this.scene.enableInput();
       },
     });
 
@@ -54,7 +43,6 @@ export class RoleRushOrchestration extends GameOrchestration {
 
   async devStart() {
     this.isRunning = true;
-    console.log("RoleRushOrchestration DEV START");
     (this.scene as RoleRushScene).addPlayerToScene();
     (this.scene as RoleRushScene).showStartPromptAndGUI();
     await this.delay(3000);
@@ -83,7 +71,8 @@ export class RoleRushOrchestration extends GameOrchestration {
           });
       }},
       { ms: 1000, callback: () => {
-          //SoundManager.instance.playOnce(TennisResources.Cheering2Sfx, 0.5);
+          this.player.celebrate();
+          SoundManager.instance.playOnce(RoleRushResources.Cheering2Sfx, 0.5);
       }},
     ];
 

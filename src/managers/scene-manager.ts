@@ -11,8 +11,13 @@ import { loader as roleRushLoader } from "@/resources/role-rush-resources";
 import { LevelOneScene } from "@/scenes/adventure/level-one-scene";
 
 export class SceneManager {
-  private static _instance: SceneManager;
+  private static _instance: SceneManager | undefined = undefined;
   private engine!: Engine;
+
+  public static dispose() {
+    SceneManager._instance = undefined;
+    // Clear any other static properties or listeners here
+  }
 
   private constructor(engine: Engine) {
     this.engine = engine;

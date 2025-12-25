@@ -7,6 +7,8 @@ import { computeHitEffectiveness } from "@/actors/tools/racket/compute-hit-effec
 import { BounceTrapezoidPoints } from "@/types/bounce-trapezoid-points";
 import { Scene, vec, Vector } from "excalibur";
 import { Resources as TennisResources } from "@/resources/tennis-resources";
+import { SoundManager } from "@/managers/sound-manager";
+import { Resources } from "@/resources";
 
 export class BallManager {
   private scene: Scene;
@@ -172,6 +174,10 @@ export class BallManager {
   }
 
   private onPointLost() {
+    if (Math.random() < 0.4) {
+      SoundManager.instance.playOnce(this.player.character === "chuti" ? Resources.ChutiOhNoSfx : Resources.NeitiOhNoSfx, 1);
+    }
+
     this.scene.emit("tennis:point", { who: "opponent" });
     this.removeBall();
     this.servingSide = "opponent"; // opponent serves next
@@ -341,6 +347,7 @@ export class BallManager {
         this.scene.emit("racket:enable");
       }, 700);
     } else {
+      this.opponent.animateServe();
       // opponent must move to touch its own service area first
       this.serveBy(by, this.opponent.getCustomData("tennis-serve-ball-position"));
     }

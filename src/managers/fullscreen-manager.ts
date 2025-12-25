@@ -1,9 +1,14 @@
 import { Engine } from "excalibur";
 
 export class FullscreenManager {
-  private static _instance: FullscreenManager;
+  private static _instance: FullscreenManager | undefined = undefined;
   private engine!: Engine;
   private isFullscreen: boolean = false;
+
+  public static dispose() {
+    FullscreenManager._instance = undefined;
+    // Remove any static listeners or references
+  }
 
   private constructor(engine: Engine) {
     this.engine = engine;

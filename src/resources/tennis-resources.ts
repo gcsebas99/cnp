@@ -14,10 +14,11 @@ import cheering2Mp3 from "@/assets/tennis/sfx/sfx-cheering-2.mp3";
 import cheering3Mp3 from "@/assets/tennis/sfx/sfx-cheering-3.mp3";
 import welcomeChutiMp3 from "@/assets/tennis/sfx/sfx-welcome-chuti.mp3";
 import welcomeNeitiMp3 from "@/assets/tennis/sfx/sfx-welcome-neiti.mp3";
-import helloIntro1Mp3 from "@/assets/tennis/sfx/hello-cut-intro-1.mp3";
+import helloMp3 from "@/assets/tennis/sfx/hello.mp3";
 import puffPlayerUrl from "@/assets/vfx/puff-player-2x.png";
 import { CustomLoader } from "@/loaders/custom-loader";
 import { getLdtkMapPath } from "@/utils/get-ldtk-map-path";
+import tennisOpponentPng from "@/assets/tennis/tennis-opponent-spritesheet.png";
 
 const TennisMapUrl = getLdtkMapPath("tennis.ldtk");
 
@@ -28,6 +29,7 @@ export const Resources = {
   RacketRed: new ImageSource(racketRedUrl),
   RacketBlue: new ImageSource(racketBlueUrl),
   Ball: new ImageSource(ballUrl),
+  TennisOpponent: new ImageSource(tennisOpponentPng),
   // sfx
   BounceSfx: new Sound(bounceMp3),
   BallHitSfx: new Sound(hitMp3),
@@ -37,7 +39,7 @@ export const Resources = {
   Cheering3Sfx: new Sound(cheering3Mp3),
   WelcomeChutiSfx: new Sound(welcomeChutiMp3),
   WelcomeNeitiSfx: new Sound(welcomeNeitiMp3),
-  HelloIntro1Sfx: new Sound(helloIntro1Mp3),
+  HelloMusic: new Sound(helloMp3),
   //vfx
   PuffPlayer: new ImageSource(puffPlayerUrl),
 };

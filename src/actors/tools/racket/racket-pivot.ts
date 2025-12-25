@@ -34,7 +34,7 @@ export class RacketPivot extends Actor {
     }
   }
 
-  private setRacketOnSide(side: "left" | "right") {
+  public setRacketOnSide(side: "left" | "right") {
     this.side = side;
     if (side === "left") {
       this.racket.pos = RACKET_LEFT_OFFSET;
@@ -43,5 +43,9 @@ export class RacketPivot extends Actor {
       this.racket.pos = RACKET_RIGHT_OFFSET;
       this.racket.rotation = RACKET_RIGHT_ROTATION;
     }
+  }
+
+  public getRacketSide(): "left" | "right" {
+    return this.side;
   }
 }

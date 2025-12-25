@@ -16,8 +16,13 @@ import { PauseManager } from "@/managers/pause-manager";
 import { SceneManager } from "@/managers/scene-manager";
 import { FullscreenManager } from "@/managers/fullscreen-manager";
 import { EndGameManager } from "@/managers/end-game-manager";
+import { disposeAllManagers } from "@/managers/dispose-all-managers";
 
 // Goal is to keep main.ts small and just enough to configure the engine
+
+//dispose all managers first when reloading the game
+disposeAllManagers();
+
 
 const game = new Engine({
   width: 2304,
@@ -33,6 +38,16 @@ const game = new Engine({
     endgame: {scene: EndGameScene, loader: endGameLoader},
   },
 });
+
+window.addEventListener("beforeunload", () => {
+  console.log("||--Disposing Excalibur engine before reload...");
+  if (game && !game.isDisposed()) {
+      game.dispose();
+      console.log("||--ENGINE DISPOSED!!!!!");
+  }
+  window.removeEventListener("beforeunload", () => {});
+});
+
 
 SceneManager.init(game)
 SceneManager.instance.addGameScenes();

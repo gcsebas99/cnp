@@ -4,9 +4,14 @@ import { SceneManager } from "@/managers/scene-manager";
 import { SoundManager } from "@/managers/sound-manager";
 
 export class PauseManager {
-  private static _instance: PauseManager;
+  private static _instance: PauseManager | undefined = undefined;
   private engine!: Engine;
   private _pausedScene?: Scene;
+
+  public static dispose() {
+    PauseManager._instance = undefined;
+    // Remove any static listeners or references
+  }
 
   private constructor(engine: Engine) {
     this.engine = engine;

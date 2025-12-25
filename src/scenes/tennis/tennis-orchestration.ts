@@ -13,12 +13,14 @@ export class TennisOrchestration extends GameOrchestration {
   async start() {
     this.isRunning = true;
 
+    InputManager.instance.disable();
+
     const events = [
       { ms: 500, callback: () => {
           SoundManager.instance.playOnce(TennisResources.Cheering1Sfx, 0.3);
       }},
       { ms: 2000, callback: () => {
-          SoundManager.instance.playOnce(TennisResources.WelcomeChutiSfx);
+          SoundManager.instance.playOnce(this.player.character === "chuti" ? TennisResources.WelcomeChutiSfx : TennisResources.WelcomeNeitiSfx);
       }},
       { ms: 6500, callback: () => {
           (this.scene as TennisScene).addPlayerToScene();
@@ -33,19 +35,18 @@ export class TennisOrchestration extends GameOrchestration {
           TennisResources.Cheering3Sfx.volume = 0.1;
       }},
       { ms: 18700, callback: () => {
+          InputManager.instance.enable();
           (this.scene as TennisScene).showStartPromptAndGUI();
       }},
     ];
 
     this.timeline = new TimelineScheduler(events, {
       totalMs: 21500,
-      onComplete: () => {
+      onComplete: async () => {
+        SoundManager.instance.playOnce(TennisResources.HelloMusic, 0.3);
+        await this.delay(500);
+        (this.scene as TennisScene).startGame();
         this.isRunning = false;
-        console.log("Tennis intro complete — start game!");
-        // TennisResources.HelloIntro1Sfx.volume = 0.7;
-        // TennisResources.HelloIntro1Sfx.loop = true;
-        // TennisResources.HelloIntro1Sfx.play();
-        //this.scene.enableInput();
       },
     });
 
@@ -83,6 +84,8 @@ export class TennisOrchestration extends GameOrchestration {
           });
       }},
       { ms: 1000, callback: () => {
+          this.player.celebrate();
+
           SoundManager.instance.playOnce(TennisResources.Cheering2Sfx, 0.5);
       }},
     ];

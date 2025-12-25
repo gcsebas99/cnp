@@ -1,11 +1,15 @@
-import { Color, Engine, ExcaliburGraphicsContext, FadeInOut } from "excalibur";
+import { Actor, Color, Engine, ExcaliburGraphicsContext, FadeInOut, vec, Vector } from "excalibur";
 import { Resources } from "@/resources";
 import { MenuManager } from "@/managers/menu-manager";
 import { BaseScene } from "@/core/base-scene";
 import { SoundManager } from "@/managers/sound-manager";
+import { MovingBackground } from "@/actors/objects/moving-background";
+import { MenuBgRandom } from "@/sprite-sheets/menu-bg";
+import { InputManager } from "@/managers/input-manager";
 
 export class MenuScene extends BaseScene {
   private menuManager!: MenuManager;
+  private background?: MovingBackground;
 
   constructor() {
     super("menu");
@@ -18,7 +22,29 @@ export class MenuScene extends BaseScene {
     this.menuManager.setState("minigames");
 
     Resources.MenuMusic.loop = true;
-    Resources.MenuMusic.volume = 0.2;
+
+    // background
+    const randomBg = MenuBgRandom[Math.floor(Math.random() * MenuBgRandom.length)];
+    const directionOptions = ["left", "right", "up", "down", "diagonal-to-topleft", "diagonal-to-topright", "diagonal-to-bottomleft", "diagonal-to-bottomright"];
+    const randomDirection = directionOptions[Math.floor(Math.random() * directionOptions.length)] as any;
+    this.background = new MovingBackground({
+      width: engine.drawWidth,
+      height: engine.drawHeight,
+      sprite: randomBg,
+      spriteSize: 64,
+      direction: randomDirection,
+      speed: 0.05,
+    });
+    this.add(this.background);
+
+    //add logo image: Resources.CYNLogo
+    const logoActor = new Actor({
+      pos: vec(engine.halfDrawWidth + 30, 200),
+      anchor: Vector.Half,
+      scale: vec(0.6, 0.6)
+    });
+    logoActor.graphics.use(Resources.CYNLogo.toSprite());
+    this.add(logoActor);
   }
 
   onActivate() {
@@ -30,6 +56,7 @@ export class MenuScene extends BaseScene {
   onDeactivate() {
     SoundManager.instance.stopAll();
     SoundManager.instance.cleanup();
+    InputManager.instance.enable();
   }
 
   onPostDraw(ctx: ExcaliburGraphicsContext, elapsed: number) {

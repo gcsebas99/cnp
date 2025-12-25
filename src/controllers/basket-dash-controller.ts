@@ -1,5 +1,5 @@
 import { Engine } from "excalibur";
-import { Player } from "@/actors/player/player";
+import { BasketDashState, Player } from "@/actors/player/player";
 import { InputManager } from "@/managers/input-manager";
 import { Controller } from "@/controllers/controller";
 
@@ -16,65 +16,69 @@ export class BasketDashController implements Controller {
 
   private isRunning = false;
   private isOnGround = false;
-  private respawnFreeze = false;
+  private state: BasketDashState = "idle";
 
   update(player: Player, engine: Engine, delta: number) {
-    if (this.respawnFreeze) {
-      return;
-    }
-
-    const inputState = this.input.state;
+    const input = this.input.state;
     const dt = delta / 1000;
 
-    // --- Detect ground contact ---
-    // (basic version — you might later replace with collision checks or sensors)
+    // --- Ground check (simple, but OK for now) ---
     this.isOnGround = Math.abs(player.vel.y) < 0.1;
 
-    // --- Horizontal movement ---
+    // --- Direction ---
     let dir = 0;
-    if (inputState.left) dir = -1;
-    if (inputState.right) dir = 1;
+    if (input.left) dir = -1;
+    else if (input.right) dir = 1;
 
-    if (dir < 0) {
-      player.tool?.use("facing-left");
-    } else if (dir > 0) {
-      player.tool?.use("facing-right");
+    // --- Facing ---
+    if (dir !== 0) {
+      player.setFacing(dir < 0);
+      player.tool?.use(dir < 0 ? "facing-left" : "facing-right");
     }
 
-    // Run logic: only when button2 is held
-    this.isRunning = inputState.button2 ?? false;
+    // --- Running ---
+    this.isRunning = input.button2 ?? false;
 
     let speed = this.baseSpeed;
-
     if (this.isRunning) {
       speed *= this.runMultiplier;
     }
 
     const accel = this.isOnGround ? 1.0 : this.airControl;
-    const targetVelX = dir * speed * accel;
+    player.vel.x = dir * speed * accel;
 
-    // Smooth horizontal velocity
-    player.vel.x = targetVelX;
-
-    // --- Jumping ---
-    if (inputState.justPressed.has("button1") && this.isOnGround) {
-      player.vel.y = -this.jumpForce; // negative is upward
+    // --- Jump ---
+    if (input.justPressed.has("button1") && this.isOnGround) {
+      player.vel.y = -this.jumpForce;
       this.isOnGround = false;
+
+      // Optional jump animation (single-shot)
+      this.applyState(player, "jump");
     }
 
-    // --- Gravity & fall speed clamp ---
+    // --- Gravity ---
     player.vel.y += engine.physics.gravity.y * this.gravityScale * dt;
     if (player.vel.y > this.maxFallSpeed) {
       player.vel.y = this.maxFallSpeed;
     }
 
-    // --- Simple facing direction ---
-    if (dir !== 0) {
-      player.graphics.flipHorizontal = dir < 0;
-      player.animation.set(this.isRunning ? "run" : "walk");
-    } else {
-      player.animation.set("idle");
+    // --- State resolution ---
+    if (!this.isOnGround) {
+      // stay in jump or keep last state
+      return;
     }
+
+    if (dir === 0) {
+      this.applyState(player, "idle");
+    } else {
+      this.applyState(player, this.isRunning ? "run" : "walk");
+    }
+  }
+
+  private applyState(player: Player, next: BasketDashState) {
+    if (this.state === next) return;
+    this.state = next;
+    player.setBasketDashState(next);
   }
 
   performAction(player: Player, action: string, options?: any): void {
@@ -94,15 +98,4 @@ export class BasketDashController implements Controller {
     // }
   }
 
-  // --- Expose some tuning hooks ---
-  public setTuning(options: Partial<{
-    baseSpeed: number;
-    runMultiplier: number;
-    jumpForce: number;
-    gravityScale: number;
-    maxFallSpeed: number;
-    airControl: number;
-  }>) {
-    Object.assign(this, options);
-  }
 }

@@ -8,7 +8,6 @@ import { PopupManager } from "@/managers/popup-manager";
 import { animStartSprite } from "@/sprite-sheets/start";
 import { AutumnTree } from "@/actors/objects/autumn-tree";
 import { MovingBackground } from "@/actors/objects/moving-background";
-import { Frog } from "@/actors/npcs/frog";
 import { Fruits } from "@/sprite-sheets/basket-dash-items/fruits";
 import { RottenFruits } from "@/sprite-sheets/basket-dash-items/rotten-fruits";
 import { PowerUps } from "@/sprite-sheets/basket-dash-items/power-ups";
@@ -23,8 +22,12 @@ import { ScoreManager } from "@/managers/score-manager";
 import { GuiManager } from "@/managers/gui-manager";
 import { GameState } from "@/types/game-state";
 import { BasketDashOrchestration } from "@/scenes/basket-dash/basket-dash-orchestration";
+import { PersistentGameStateManager } from "@/managers/persistent-game-state-manager";
+import { SoundManager } from "@/managers/sound-manager";
+import { InputManager } from "@/managers/input-manager";
+import { PlayerPuffVFX } from "@/actors/vfx/player-puff-vfx";
 
-const GAME_TIME_MS = 60 * 1000; // 1 minute
+const GAME_TIME_MS = 90 * 1000; // 1.5 minutes
 
 export class BasketDashScene extends BaseLdtkScene {
   private orchestration!: BasketDashOrchestration;
@@ -49,12 +52,13 @@ export class BasketDashScene extends BaseLdtkScene {
     });
 
     ldtk.registerEntityIdentifierFactory("PlayerSpawn", (props) => {
-      this.player = new Player("chuti", props.worldPos.x, props.worldPos.y, vec(props.entity.__pivot[0],props.entity.__pivot[1]));
+      const playerId = PersistentGameStateManager.getSelectedPlayer() || "chuti";
+      this.player = new Player(playerId, props.worldPos.x, props.worldPos.y, vec(props.entity.__pivot[0],props.entity.__pivot[1]));
       this.player.controller = new BasketDashController();
       const basket = new Basket(this.player);
       this.player.equipTool(basket, vec(64, 64));
       basket.use("facing-right");
-      return this.player;
+      return undefined;
     });
 
   }
@@ -136,16 +140,8 @@ export class BasketDashScene extends BaseLdtkScene {
     //   soundAppearDelay: 500,
     // });
 
-
-    Resources.MenuMusic.loop = true;
-    Resources.MenuMusic.volume = 0.2;
-
-    const frog = new Frog(600, 1000);
-    this.add(frog);
-
-
-    this.orchestration = new BasketDashOrchestration(engine, this);
-    this.orchestration.devStart();
+    this.orchestration = new BasketDashOrchestration(engine, this, this.player!);
+    this.orchestration.start();
   }
 
   private initGameGraphics(engine: Engine) {
@@ -170,7 +166,7 @@ export class BasketDashScene extends BaseLdtkScene {
   }
 
   onDeactivate() {
-    Resources.MenuMusic.stop();
+    SoundManager.instance.stopAll()
   }
 
   override onPreUpdate(engine: Engine, delta: number) {
@@ -200,6 +196,10 @@ export class BasketDashScene extends BaseLdtkScene {
           Resources.ScoreUpSfx.play();
           GuiManager.instance.updateScore(this.scoreManager!.getScore(), true);
         } else {
+          if (Math.random() < 0.4) {
+            SoundManager.instance.playOnce(this.player!.character === "chuti" ? Resources.ChutiEsoNoEraSfx: Resources.NeitiEsoNoEraSfx, 1);
+          }
+
           this.scoreManager?.subtract(-evt.points);
           GuiManager.instance.updateScore(this.scoreManager!.getScore(), true);
         }
@@ -211,7 +211,7 @@ export class BasketDashScene extends BaseLdtkScene {
     PopupManager.instance.show({
       text: "Start!",
       duration: 1500,
-      soundAppear: Resources.ReadyStartSfx,
+      soundAppear: BasketDashResources.StartSfx,
       sprite: animStartSprite,
       animationDelay: 800,
       soundAppearDelay: 500,
@@ -226,19 +226,21 @@ export class BasketDashScene extends BaseLdtkScene {
   }
 
   public addPlayerToScene() {
-    // if (!this.player) return;
-    // const puff = new PlayerPuffVFX(this.player.pos, () => {
-    //   if (!this.player) return;
-    //   this.add(this.player);
-    // });
+    if (!this.player) return;
+    const puff = new PlayerPuffVFX(this.player.pos, () => {
+      if (!this.player) return;
+      this.player.setFacing(false);
+      this.add(this.player);
+    });
 
-    // this.add(puff);
+    this.add(puff);
   }
 
   public startGame() {
     this.state = GameState.Running;
     this.obstacleManager?.start();
     this.treeItemsManager?.start();
+    InputManager.instance.enable();
   }
 
   public endGame() {

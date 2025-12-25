@@ -14,7 +14,7 @@ type PopupOptions = {
 };
 
 export class PopupManager {
-  private static _instance: PopupManager;
+  private static _instance: PopupManager | undefined = undefined;
   private engine!: Engine;
 
 
@@ -98,5 +98,10 @@ export class PopupManager {
   public static createAnimatedSprite(spriteSheet: SpriteSheet, spriteSheetIndex: number[], frameDuration: number, loop: boolean = true): Animation {
     const anim = Animation.fromSpriteSheet(spriteSheet, spriteSheetIndex, frameDuration, loop ? AnimationStrategy.Loop : AnimationStrategy.Freeze);
     return anim;
+  }
+
+  public static dispose() {
+    PopupManager._instance = undefined;
+    // Clear any other static properties or listeners here
   }
 }

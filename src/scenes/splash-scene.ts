@@ -32,7 +32,7 @@ export class SplashScene extends BaseScene {
 
     // Press any key text
     this.pressText = new Label({
-      text: "Presiona cualquier tecla...",
+      text: "Press any key...",
       pos: new Vector(engine.halfDrawWidth, engine.drawHeight - 120),
       font: new Font({
         size: 64,

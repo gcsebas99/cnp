@@ -10,7 +10,8 @@ export class RoleTrigger extends Actor {
   private floatSpeed = 12; // px/sec
   private floatRange = 10;
   private baseY = 0;
-  private taskName: RoleName = "doctor";
+  public taskName: RoleName = "doctor";
+  private isDisabled = false;
 
   constructor(taskName: RoleName, defaultSprite: Sprite, outlineSprite: Sprite, x: number, y: number, yAdjustment: number = 0) {
     super({
@@ -36,9 +37,10 @@ export class RoleTrigger extends Actor {
     this.addTag("role-trigger");
 
     this.on("collisionstart", (evt) => {
-      if (evt.other.owner.hasTag("player")) {
+      console.log("RoleTrigger collisionstart", this.taskName, this.isDisabled, evt.other.owner.hasTag("player"));
+      if (!this.isDisabled && evt.other.owner.hasTag("player")) {
         // Play sound
-        this.scene?.emit("trigger:touched", { task: this.taskName });
+        this.scene?.emit("trigger:touched", { task: this.taskName, player: evt.other.owner });
         this.kill(); // vanish
       }
     });
@@ -80,5 +82,10 @@ export class RoleTrigger extends Actor {
     if (Math.abs(this.pos.y - this.baseY) > this.floatRange) {
       this.floatDirection *= -1;
     }
+  }
+
+  public setDisabled(disabled: boolean) {
+    this.isDisabled = disabled;
+    this.graphics.opacity = disabled ? 0.5 : 1;
   }
 }

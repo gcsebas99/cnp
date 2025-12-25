@@ -12,6 +12,7 @@ export class Racket extends Tool {
   private pivot!: RacketPivot;
   public swing!: RacketSwing;
   private racketDisabled = false;
+  private autoAdjust: boolean = true;
 
   constructor(player: Player) {
     super({
@@ -36,6 +37,7 @@ export class Racket extends Tool {
     this.scene?.on("ball:trajectory", (evt: any) => {
       if (evt.by !== "opponent") return;
       const dx = evt.vel.x;
+      if (!this.autoAdjust) return;
       // Assist only if clear horizontal motion
       if (dx > 10) {
         this.pivot.switchHand("right");
@@ -88,5 +90,18 @@ export class Racket extends Tool {
     }
     //ball.emit("ball:hit", { by: "player" });
     // optionally play a sound, particles, etc.
+  }
+
+  public getRacketSide(): "left" | "right" {
+    return this.pivot.getRacketSide();
+  }
+
+  forceSide(side: "left" | "right") {
+    //this.pivot.side = side;
+    this.pivot.setRacketOnSide(side);
+  }
+
+  allowAutoAdjust(enabled: boolean) {
+    this.autoAdjust = enabled;
   }
 }

@@ -1,17 +1,24 @@
-import { Engine, Color, ExcaliburGraphicsContext, Text, Font, TextAlign, BaseAlign } from "excalibur";
+import { Engine, Color, ExcaliburGraphicsContext, Text, Font, TextAlign, BaseAlign, Sprite, vec } from "excalibur";
 import { InputManager } from "./input-manager";
 import { AdventureSlot, PersistentGameStateManager } from "./persistent-game-state-manager";
 import { createNineSliceSprites } from "@/utils/create-nine-slice-sprite";
 //import { Buttons } from "@/sprite-sheets/buttons";
 import { drawNineSliceButton } from "@/utils/draw-nine-slice-button";
-//import { CursorSheet } from "@/sprite-sheets/cursor";
 import { Resources } from "@/resources";
+import { Character } from "@/actors/player/player";
+import { SoundManager } from "@/managers/sound-manager";
 
-type MenuState = "main" | "adventure" | "minigames" | "slotDetails";
+type MenuState = "main" | "adventure" | "minigames" | "slotDetails" | "playerPicker";
 
 interface MenuItem {
   label: string;
   color: Color;
+}
+
+interface PlayerOption {
+  id: Character;
+  sprite: Sprite;
+  label: string;
 }
 
 export class MenuManager {
@@ -21,6 +28,22 @@ export class MenuManager {
   private detailIndex: number = 0; // vertical selection index inside slots
   private elapsed = 0;
   private cursorX = 0;
+
+  private playerIndex = 0;
+  private selectedMinigameIndex = 0;
+
+  private players: PlayerOption[] = [
+  {
+    id: "chuti",
+    label: "Chuti",
+    sprite: Resources.ChutiPicker.toSprite()
+  },
+  {
+    id: "neiti",
+    label: "Neiti",
+    sprite: Resources.NeitiPicker.toSprite()
+  }
+];
 
   private mainMenu: MenuItem[] = [
     { label: "Adventure", color: Color.Chartreuse },
@@ -53,12 +76,21 @@ export class MenuManager {
   }
 
   private handleLeft() {
+    if (this.state === "playerPicker") {
+      this.playerIndex =
+        (this.playerIndex - 1 + this.players.length) % this.players.length;
+      return;
+    }
     if (this.state === "main" || this.state === "adventure" || this.state === "minigames") {
       this.hIndex = (this.hIndex - 1 + this.getActiveMenu().length) % this.getActiveMenu().length;
     }
   }
 
   private handleRight() {
+    if (this.state === "playerPicker") {
+      this.playerIndex = (this.playerIndex + 1) % this.players.length;
+      return;
+    }
     if (this.state === "main" || this.state === "adventure" || this.state === "minigames") {
       this.hIndex = (this.hIndex + 1) % this.getActiveMenu().length;
     }
@@ -120,20 +152,67 @@ export class MenuManager {
       this.engine.goToScene("levelOne");
     }
 
+    // else if (this.state === "minigames") {
+    //   if (this.hIndex === 0) {
+    //     this.engine.goToScene("basketDash");
+    //   } else if (this.hIndex === 1) {
+    //     this.engine.goToScene("roleRush");
+    //   } else {
+    //     this.engine.goToScene("tennis");
+    //   }
+    // }
     else if (this.state === "minigames") {
-      if (this.hIndex === 0) {
-        this.engine.goToScene("basketDash");
-      } else if (this.hIndex === 1) {
-        this.engine.goToScene("roleRush");
-      } else {
-        this.engine.goToScene("tennis");
+      this.selectedMinigameIndex = this.hIndex;
+      this.playerIndex = 0;
+      this.state = "playerPicker";
+      //Resources.Select3Sfx.play(0.6);
+    }
+
+    else if (this.state === "playerPicker") {
+      const player = this.players[this.playerIndex].id;
+      // Persist selected player
+      PersistentGameStateManager.setSelectedPlayer(player);
+
+      // if player is chuti, play randomly between Resources.ChutiMiTurnoSfx and Resources.ChutiVoyYoSfx
+      if (player === "chuti") {
+        const chutiSfxOptions = [
+          Resources.ChutiMiTurnoSfx,
+          Resources.ChutiVoyYoSfx
+        ];
+        const randomSfx = chutiSfxOptions[Math.floor(Math.random() * chutiSfxOptions.length)];
+        SoundManager.instance.playOnce(randomSfx, 1);
+      } else { // if player is neiti, play randomly between Resources.NeitiMiTurnoSfx and Resources.NeitiVoyYoSfx
+        const neitiSfxOptions = [
+          Resources.NeitiMiTurnoSfx,
+          Resources.NeitiVoyYoSfx
+        ];
+        const randomSfx = neitiSfxOptions[Math.floor(Math.random() * neitiSfxOptions.length)];
+        SoundManager.instance.playOnce(randomSfx, 1);
       }
+      //await 2000ms before starting minigame
+      this.input.disable();
+      this.engine.clock.schedule(() => {
+        // Start selected minigame
+        if (this.selectedMinigameIndex === 0) {
+          this.engine.goToScene("basketDash");
+        } else if (this.selectedMinigameIndex === 1) {
+          this.engine.goToScene("roleRush");
+        } else {
+          this.engine.goToScene("tennis");
+        }
+      }, 2000);
     }
 
     Resources.Select3Sfx.play(0.6);
   }
 
   private handleBack() {
+    if (this.state === "playerPicker") {
+      this.state = "minigames";
+      Resources.Select1Sfx.play(0.6);
+      return;
+    }
+
     if (this.state === "slotDetails") {
       this.state = "adventure";
       Resources.Select1Sfx.play(0.6);
@@ -173,6 +252,11 @@ export class MenuManager {
   }
 
   public draw(ctx: ExcaliburGraphicsContext) {
+    if (this.state === "playerPicker") {
+      this.drawPlayerPicker(ctx);
+      return;
+    }
+
     if (this.state !== "minigames") return;
 
     const images = [
@@ -187,7 +271,7 @@ export class MenuManager {
     const spacing = 180;
     const totalWidth = images.length * imageSize + (images.length - 1) * spacing;
     const startX = this.engine.halfDrawWidth - totalWidth / 2;
-    const y = 200;
+    const y = 400;
 
     // Draw minigame images + frame
     images.forEach((sprite, index) => {
@@ -226,14 +310,60 @@ export class MenuManager {
       color: Color.White,
       font: new Font({
         family: "ThaleahFat",
-        size: 64,
+        size: 94,
         textAlign: TextAlign.Center,
         baseAlign: BaseAlign.Middle
       })
     });
 
-    msg.draw(ctx, this.engine.halfDrawWidth, y + imageSize + 100);
+    msg.draw(ctx, this.engine.halfDrawWidth, y + imageSize + 160);
   }
+
+  private drawPlayerPicker(ctx: ExcaliburGraphicsContext) {
+    const y = 520;
+    const size = 256;
+    const spacing = 160;
+
+    const totalWidth = this.players.length * size + (this.players.length - 1) * spacing;
+    const startX = this.engine.halfDrawWidth - totalWidth / 2;
+
+    const cursorFrame = createNineSliceSprites(
+      Resources.MenuFrameCursor.toSprite(),
+      256,
+      62
+    );
+
+    this.players.forEach((p, i) => {
+      const x = startX + i * (size + spacing);
+      p.sprite.scale = vec(1.5, 1.5);
+      p.sprite.draw(ctx, x + 70, y + 30);
+
+      const label = new Text({
+        text: p.label,
+        color: Color.White,
+        font: new Font({
+          family: "ThaleahFat",
+          size: 68,
+          textAlign: TextAlign.Center,
+          baseAlign: BaseAlign.Middle
+        })
+      });
+
+      label.draw(ctx, x + size / 2, y + size + 140);
+    });
+
+    // Cursor animation
+    const cursorScale = 1 + 0.01 * Math.sin(this.elapsed / 200);
+    const cx = startX + this.playerIndex * (size + spacing);
+
+    ctx.save();
+    ctx.translate(cx + size / 2, y + size / 2);
+    ctx.scale(cursorScale, cursorScale);
+    ctx.translate(-(cx + size / 2), -(y + size / 2));
+    drawNineSliceButton(ctx, cursorFrame, cx, y, size, size + 100, 62);
+    ctx.restore();
+  }
+
 
   // public draw(ctx: ExcaliburGraphicsContext) {
   //   const menu = this.getActiveMenu();

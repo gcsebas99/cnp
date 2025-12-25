@@ -1,3 +1,4 @@
+import { Character } from "@/actors/player/player";
 
 export type AdventureSlot = {
   id: number;
@@ -17,10 +18,26 @@ export type MinigameScores = {
 export class PersistentGameStateManager {
   private static STORAGE_KEY = "gameState";
 
+  private static selectedPlayerId: Character | null = null;
+
   private static state: {
     adventureSlots: AdventureSlot[];
     minigames: MinigameScores;
   };
+
+  public static dispose() {
+    PersistentGameStateManager.selectedPlayerId = null;
+    PersistentGameStateManager.state = {
+      adventureSlots: [],
+      minigames: {
+        tennisHighScore: 0,
+        basketDashHighScore: 0,
+        roleRushHighScore: 0
+      }
+    };
+    // Optionally clear localStorage if desired
+    // localStorage.removeItem(PersistentGameStateManager.STORAGE_KEY);
+  }
 
   /** Initialize storage and load state */
   static init() {
@@ -114,5 +131,13 @@ export class PersistentGameStateManager {
       this.state.minigames[minigame] = score;
       this.saveState();
     }
+  }
+
+  static setSelectedPlayer(playerId: Character) {
+    this.selectedPlayerId = playerId;
+  }
+
+  static getSelectedPlayer(): Character | null {
+    return this.selectedPlayerId;
   }
 }

@@ -20,8 +20,11 @@ import { GameState } from "@/types/game-state";
 import { ServiceArea } from "@/actors/objects/service-area";
 import { BounceTrapezoidPoints } from "@/types/bounce-trapezoid-points";
 import { ScoreManager } from "@/managers/score-manager";
+import { PersistentGameStateManager } from "@/managers/persistent-game-state-manager";
+import { InputManager } from "@/managers/input-manager";
+import { SoundManager } from "@/managers/sound-manager";
 
-const GAME_TIME_MS = 2 * 60 * 1000; // 2 minutes
+const GAME_TIME_MS = 90 * 1000; // 1.5 minutes
 
 export class TennisScene extends BaseLdtkScene {
   private orchestration!: TennisOrchestration;
@@ -72,7 +75,8 @@ export class TennisScene extends BaseLdtkScene {
     });
 
     ldtk.registerEntityIdentifierFactory("PlayerSpawn", (props) => {
-      this.player = new Player("neiti", props.worldPos.x, props.worldPos.y, vec(props.entity.__pivot[0],props.entity.__pivot[1]));
+      const playerId = PersistentGameStateManager.getSelectedPlayer() || "chuti";
+      this.player = new Player(playerId, props.worldPos.x, props.worldPos.y, vec(props.entity.__pivot[0],props.entity.__pivot[1]));
       this.player.controller = new TennisController();
       //add racket
       const racket = new Racket(this.player);
@@ -141,14 +145,14 @@ export class TennisScene extends BaseLdtkScene {
     this.initGameGraphics(engine);
     this.state = GameState.Waiting;
 
-    this.orchestration = new TennisOrchestration(engine, this);
+    this.orchestration = new TennisOrchestration(engine, this, this.player!);
 
     this.initBallManager();
     this.registerScore();
 
 
-    //this.orchestration.start();
-    this.orchestration.devStart();
+    this.orchestration.start();
+    //this.orchestration.devStart();
   }
 
   private initGameGraphics(engine: Engine) {
@@ -214,6 +218,7 @@ export class TennisScene extends BaseLdtkScene {
     if (!this.player) return;
     const puff = new PlayerPuffVFX(this.player.pos, () => {
       if (!this.player) return;
+      this.player.setFacing(true);
       this.add(this.player);
     });
 
@@ -223,6 +228,7 @@ export class TennisScene extends BaseLdtkScene {
   public startGame() {
     this.state = GameState.Running;
     this.ballManager?.startFirstServe();
+    InputManager.instance.enable();
   }
 
   public endGame() {
@@ -232,16 +238,10 @@ export class TennisScene extends BaseLdtkScene {
 
   onActivate() {
     super.onActivate();
-    // setTimeout(() => {
-    //   InputManager.instance.disableExceptPause();
-    // }, 5000);
-    // setTimeout(() => {
-    //   InputManager.instance.enable();
-    // }, 10000);
   }
 
   onDeactivate() {
-    Resources.MenuMusic.stop();
+    SoundManager.instance.stopAll();
   }
 
   override onPreUpdate(engine: Engine, delta: number) {
